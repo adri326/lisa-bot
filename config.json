@@ -1,0 +1,51 @@
+{
+	"token": "MzE4MDQxOTE2MDk0Njc3MDAy.DDBDQg.RSB0raSmkhijd8X3XDCe9TERetk",
+	"rpdir": "RP",
+	"printableSettings": ["adventure_mode", "admins", "user_rights_level"],
+	"defaults": {
+		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
+		"specie": {"name": "Human", "desc": "This specie is the basic specie, it hasn't any special attributes"},
+		"object": {"name": "Stick", "desc": "A stick you found is the forest, it is rather useless.", "class": "sword", "subclass": "stick",
+			"attrs": [{"name": "base_stat",
+				"values": ["ATK", "0", "int"]}]},
+		"adventure_mode": "auto",
+		"user_rights_level": 2,
+		"ATK": 4,
+		"DEF": 3,
+		"VIT": 2,
+		"MAG": 2,
+		"AGI": 3,
+		"STR": 4
+	},
+	"settingList": {
+		"class": "classes",
+		"specie": "species",
+		"object": "objects"
+	},
+	"baseStats": [
+		"ATK",
+		"DEF",
+		"VIT",
+		"MAG",
+		"AGI",
+		"STR"
+	],
+	"lang": {
+		"en": {
+			"init_alert": "*Uh oh!* RP is not ready? Let me fix that!",
+			"init_success": "*Haha!* RP is ready, but there's isn't much variety! Add classes/species/items using `l!rp admin specie/class/item create`! You would want to edit the more advanced settings usin `l!rp admin settings`",
+			"char_init": "Hello wanderer! Welcome in our wonderful world! May I know your name?",
+			"char_init_success": "Nice to meet you, {{NAME}}!",
+			"char_ask_class": "What class are you, {{NAME}}?{{CLASSES}}",
+			"char_ask_class_success": "Alright! You are a {{CLASS}}!",
+			"char_ask_specie": "What specie are you?{{SPECIES}}",
+			"char_ask_specie_success": "I see, you are a {{SPECIE}}",
+
+
+			"error_no_class": "*Uh oh!* There aren't any classes? I can't do that without any! Create one using `l!rp admin class create`! You might continue to initalise your character using `l!rp char class`",
+			"error_no_specie": "*Uh oh!* There aren't any species? I can't do that without any! Create one using `l!rp admin specie create`! You might continue to initalise your character using `l!rp char specie`",
+			"error_char_ask_class_syntax": "*Huh?* I didn't quite get your class name!",
+			"error_char_ask_specie_syntax": "*Huh?* I didn't quite get your specie name!"
+		}
+	}
+}
