@@ -98,6 +98,10 @@ function splitCommand(str) {
 	})).filter(Boolean);
 }
 
+function random(a, b) {
+	return Math.random() * (b-a) + a;
+}
+
 function replyMessage(msg, content) {
 	// NOTE: Sends a message back
 	msg.channel.send(content);
@@ -125,6 +129,39 @@ function initRP(channel, creator) {
 	rp[channel.id] = RP.new(channel.id, creator);
 	channel.send(config.lang[lang].init_success);
 }
+
+function create_room(msg) {
+	var difficulty = rp[msg.channel.id].difficulty;
+	var room = {
+		entities: [],
+		items: []
+	};
+	var mobCount = random(Math.sqrt(difficulty), difficulty);
+	for (i = 0; i < mobCount; i++) {
+		var found = false;
+		for (j = 0; j < 5 && !found; j++) {
+			var n = Math.floor(Math.random() * rp[msg.channel.id].mobs.length);
+			var mob = rp[msg.channel.id].mobs[n];
+			if (mob.difficulty <= difficulty) {
+				room.entities.push({id: n});
+				found = true;
+			}
+		}
+	}
+	return room;
+}
+
+function hit(msg, someone) {
+	if (someone.inv != undefined && someone.inv != null) {
+		if (someone.inv.length > 0 && someone.holding > -1) {
+
+		}
+	}
+	// (else)
+	var s_t = attrmgt.treat(someone, rp[msg.channel.id].species[someone.specieId | -1], rp[msg.channel.id].classes[someone.classId | -1]);
+	return s_t.stats["ATK"];
+}
+
 
 function say(msg, msg_name) {
 	var string = config.lang[lang][msg_name];
@@ -154,14 +191,18 @@ function loadRP() {
 		if (items != null)
 		for (i = 0; i < items.length; i++) {
 			if (items[i]!="undefined" && items[i]!="[object Object]") {
-				fs.readFile("./"+config.rpdir+"/"+items[i], (err, data) => {
-					if (err) {
-						console.log("Error while reading "+config.rpdir+"/"+items[i]+", skipping!");
-					} else {
-						var chan = CircularJSON.parse(data.toString());
-						rp[chan.id] = chan;
+				data = fs.readFileSync("./"+config.rpdir+"/"+items[i])
+				if (data == null || data == undefined) {
+					console.log("Error while reading "+config.rpdir+"/"+items[i]+", skipping!");
+				} else {
+					var chan = CircularJSON.parse(data.toString());
+					for (x in chan.chars) {
+						if (chan.chars[x].HP == undefined) chan.chars[x].HP = config.defaults.HP;
+						if (chan.chars[x].holding == undefined) chan.chars[x].holding = -1;
 					}
-				});
+					rp[chan.id] = chan;
+
+				}
 			}
 		}
 	})
@@ -276,19 +317,13 @@ function displayChar(msg) {
 		if (actClass != null && actSpecie != null) {
 			replyMessage(msg, "**" + actChar.name + "**\r\n" +
 				"*Class*: " + actClass.name + "\r\n\t*" + actClass.desc + "*\r\n" +
-				"*Specie*: " + actSpecie.name + "\r\n\t*" + actSpecie.desc + "*");
-			var inv = "";
-			for (i in actChar.inventory) {
-				var actObject = rp[msg.channel.id].objects[actChar.inventory[i].id];
-				inv = inv + "\r\n - " + actObject.name;
-				if (actChar.inventory[i].quantity != 1) {
-					inv = inv + " (" + actChar.inventory[i].quantity + ")";
-				}
+				"*Specie*: " + actSpecie.name + "\r\n\t*" + actSpecie.desc + "*\r\n" +
+				"*Stats*:");
+			var stats = "";
+			for (stat in config.baseStats) {
+				stats = stats + "\r\n\t" + config.baseStats[stat] + ": " + actChar[config.baseStats[stat]];
 			}
-			if (actChar.inventory.length == 0) {
-				inv = "\r\n\t*Empty*";
-			}
-			replyMessage(msg, "*Inventory:*" + inv);
+			replyMessage(msg, stats);
 		} else if (actChar.classId == -1 || actChar.specieId == -1) {
 			replyMessage(msg, "*The class or the specie hasn't been initialised yet*: ```\r\nclass: " + (actChar.classId != -1) + "\r\nspecie: " + (actChar.specieId != -1) + "```")
 		} else {
@@ -304,20 +339,26 @@ function displayInv(msg) {
 	if (actChar.inventory != undefined && actChar.inventory.length != 0) {
 		var string = "";
 		for (item in actChar.inventory) {
-			string = string + "\r\n - " + displayItem(msg, rp[msg.channel.id].objects[actChar.inventory[item].id]);
+			string = string + "\r\n" + displayItem(msg, rp[msg.channel.id].objects[actChar.inventory[item].id]);
 			if (actChar.inventory[item].quantity != 1) {
 				string = string + " (" + actChar.inventory[item].quantity + "x)";
 			}
 		}
-		replyMessage(msg, "*Your inventory*:```\r\n" + string + "```");
+		replyMessage(msg, "Your inventory:```\r\n" + string + "```");
 	} else {
 		if (actChar.inventory == undefined) {
 			actChar.inventory = [];
 		}
 		replyMessage(msg, "*Your inventory is empty!*");
 	}
+	if (actChar.holding == -1) {
+		replyMessage(msg, "*You are not holding anything!");
+	} else {
+		replyMessage(msg, "Holding:```\r\n" + displayItem(msg, rp[msg.channel.id].objects[actChar.holding]) + "```");
+	}
 }
 function displayItem(msg, item, desc = false) {
+
 	var string = item.name;
 	if (desc) {
 		if (item.desc != undefined) {
@@ -450,6 +491,7 @@ function getObjectId(obj_list, name) {
 	return foundId;
 }
 
+
 function canCheat(msg) {
 	if (rp[msg.channel.id].admins != undefined && rp[msg.channel.id].user_right_level != undefined)
 	return rp[msg.channel.id].admins.indexOf(msg.author.id)>-1 || rp[msg.channel.id].user_rights_level >= 2;
@@ -503,9 +545,9 @@ bot.on("message", msg => {
 			"*There are some commands you may use* (note: type `l!` in front of each one):```\r\n" +
 			"- help\r\n" +
 			"- RP [\r\n" +
-			"  > char [create / list / class / specie]\r\n" +
-			"  > save\r\n" +
-			"  > settings\r\n" +
+			"	> char [create / list / class / specie]\r\n" +
+			"	> save\r\n" +
+			"	> settings\r\n" +
 			"	> admin [\r\n" +
 			"		> class [create / list]\r\n" +
 			"		> specie [create / list]\r\n" +
@@ -516,9 +558,11 @@ bot.on("message", msg => {
 
 		if (command.startsWith("RP") || command == "RP" || command.startsWith("rp") || command == "rp") {
 
-			if (rp[msg.channel.id] == null || rp[msg.channel.id] == undefined) {
+			if (rp[msg.channel.id] == null || rp[msg.channel.id] == undefined ||
+				rp[msg.channel.id].id != msg.channel.id) {
 				// NOTE: Init RP if not done
-
+				if (rp[msg.channel.id].id != msg.channel.id)
+					replyMessage(msg, "There was an error in the configuration!");
 				initRP(msg.channel, msg.author);
 
 			}
@@ -527,10 +571,12 @@ bot.on("message", msg => {
 				// NOTE: Character management
 				if (commandParts[1] == "char") {
 
-					if (commandParts[2] == "create") { // l!RP char create
+					if (commandParts[2] == "create") {
+						// l!RP char create
 
 						askChar(msg);
-					} else if (commandParts[2] == "list") {
+					}
+					else if (commandParts[2] == "list") {
 
 						var chars = "";
 						for (i in rp[msg.channel.id].chars) {
@@ -539,15 +585,18 @@ bot.on("message", msg => {
 						}
 						replyMessage(msg, "*Those are all the ones I've heard of* :"+chars);
 
-					} else if (commandParts[2] == "class") {
+					}
+					else if (commandParts[2] == "class") {
 
 						askClass(msg);
 
-					} else if (commandParts[2] == "specie") {
+					}
+					else if (commandParts[2] == "specie") {
 
 						askSpecie(msg);
 
-					} else if (commandParts[2] == null || commandParts[2].length == 0) {
+					}
+					else if (commandParts[2] == null || commandParts[2].length == 0) {
 
 						displayChar(msg);
 
@@ -571,9 +620,9 @@ bot.on("message", msg => {
 					else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
 						if (commandParts[3] == "self" && canCheat(msg)) {
 							var objectInfo = splitCommand(command.slice(17));
-							var objectID = getObjectId(rp[msg.channel.id].objects, objectInfo[0]);
+							var objectId = getObjectId(rp[msg.channel.id].objects, objectInfo[0]);
 							if (objectId != -1) {
-								rp[msg.channel.id].chars[msg.author.id].inventory.push({id: ObjectId, quantity: parseInt(objectInfo[1] | "1")});
+								rp[msg.channel.id].chars[msg.author.id].inventory.push({id: objectId, quantity: parseInt(objectInfo[1] | "1")});
 								replyMessage(msg, "Successfully gave the item!");
 							} else {
 								replyMessage(msg, "I couldn't find the object you were looking for!");
@@ -617,6 +666,30 @@ bot.on("message", msg => {
 							}
 						}
 					}
+					else if (commandParts[2] == "hold") {
+						if (commandParts[3] != undefined) {
+							var objectInfo = splitCommand(command.slice(11).trim());
+
+							var objectId = getObjectId(rp[msg.channel.id].objects, objectInfo[0]);
+							if (objectId != -1) {
+								var actChar = rp[msg.channel.id].chars[msg.author.id];
+								var objectFound = false;
+								for (item in actChar.inventory) {
+									if (actChar.inventory[item].id == objectId) {
+										actChar.holding = objectId;
+										actChar.inventory.splice(item, 1);
+										replyMessage(msg, "Successfully equiped the item "+commandParts[3]);
+										objectFound = true;
+										break;
+									}
+								}
+								if (!objectFound)
+									replyMessage(msg, "You don't have the item!");
+							} else {
+								replyMessage(msg, "Item not found!");
+							}
+						}
+					}
 				}
 				else if (commandParts[1] == "save") {
 					/* NOTE: Save the game */
@@ -630,7 +703,7 @@ bot.on("message", msg => {
 					if (commandParts[2] == "settings") {
 						if (msg.content.length>19) {
 
-							var setting = msg.content.slice(19, msg.content.length).split("=");
+							var setting = msg.content.slice(20, msg.content.length).split("=");
 
 							if (rp[msg.channel.id][setting[0]] !== null || printableSettings.indexOf(setting[0]) >= 0) {
 								if (setting[1]=="true") {
@@ -639,14 +712,18 @@ bot.on("message", msg => {
 
 								} else if (setting[1]=="false") {
 
-									setting[2] = false;
+									setting[1] = false;
 
 								}
 								if (Array.isArray(rp[msg.channel.id][setting[0]])) {
 
-									setting[2] = setting[2].slice(",");
+									setting[1] = setting[1].split(",");
 
 								}
+								if (setting[1].startsWith("_")) {
+									setting[1] = parseFloat(setting[1].slice(1));
+								}
+								console.log(setting[0] + ": "+ setting[1]);
 								rp[msg.channel.id][setting[0]] = setting[1];
 
 							}
@@ -682,16 +759,28 @@ bot.on("message", msg => {
 
 						var string = "";
 
-						rp[msg.channel.id].dungeon = [Level.new(4, 4, 0, 2, 1)];
+						rp[msg.channel.id].mobs = [config.defaults.mob];
+						rp[msg.channel.id].room = create_room(msg);
 
-						string = displayLevel(rp[msg.channel.id].dungeon[0]);
+						/*rp[msg.channel.id].dungeon = [Level.new(4, 4, 0, 2, 1)];
+						rp[msg.channel.id].position
+
+						string = displayLevel(rp[msg.channel.id].dungeon[0]);*/
+
+						string = CircularJSON.stringify(rp[msg.channel.id].room);
+
+						string = string + "\r\n ATK: " + hit(msg, rp[msg.channel.id].mobs[0]);
 
 						replyMessage(msg, "```\r\n" + string + "```");
 
-						//console.log(CircularJSON.stringify(rp[msg.channel.id]));
+						rp[msg.channel.id].chars[msg.author.id].holding = 0;
+
+						console.log(CircularJSON.stringify(rp[msg.channel.id]));
+
+
 
 					}
-					else if (commandParts[2] == "specie" || commandParts[2] == "class" || commandParts[2] == "object") {
+					else if (config.settingList[commandParts[2]] != undefined) {
 
 						actSetting = rp[msg.channel.id][config.settingList[commandParts[2]]];
 						if (commandParts[3] == "create") {
@@ -763,7 +852,6 @@ bot.on("message", msg => {
 
 								}
 								if (commandParts[4] == "attrs") {
-
 									string = string + "\r\n\t*attrs*:```";
 									for (j in actSetting[i].attrs) {
 										string = string + "\r\n[" + j + "] " + actSetting[i].attrs[j].name;
@@ -870,6 +958,30 @@ bot.on("message", msg => {
 							}
 						}
 					}
+				}
+				else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
+					// TODO: separate the player => mob and the mob => player, to make ALL the mob attack
+					var actRoom = rp[msg.channel.id].room;
+					var targetId = Math.floor(random(0, actRoom.entities.length));
+					if (commandParts[2] != undefined) {
+						targetId = getObjectId(actRoom.entities, commandParts[2]);
+					}
+					var player_raw = rp[msg.channel.id].chars[msg.author.id];
+					var player = {};
+					player.item = attrmgt.treat(rp[msg.channel.id].objects[player_raw.holding], rp[msg.channel.id].species[player_raw.specieId | -1], rp[msg.channel.id].classes[player_raw.classId | -1]);
+					player.ATK = (player.item.stats.ATK | 0) + (player_raw.ATK | 0);
+					player.DEF = (player.item.stats.DEF | 0) + (player_raw.DEF | 0);
+					//console.log(CircularJSON.stringify(player));
+					var mob_raw = rp[msg.channel.id].mobs[actRoom.entities[targetId].id];
+					var mob = {};
+					mob.item = attrmgt.treat(rp[msg.channel.id].objects[mob_raw.holding], rp[msg.channel.id].species[mob_raw.specieId | -1], rp[msg.channel.id].classes[mob_raw.classId | -1]);
+					mob.ATK = (mob.item.stats.ATK | 0) + (mob_raw.ATK | 0);
+					mob.DEF = (mob.item.stats.DEF | 0) + (mob_raw.DEF | 0);
+					//console.log(CircularJSON.stringify(mob));
+					var PtMdmg = (player.ATK) / (0.01 * mob.DEF * mob.DEF + 1);
+					var MtPdmg = (mob.ATK) / (0.01 * player.DEF * player.DEF + 1);
+					//console.log(PtMdmg);
+					//console.log(MtPdmg);
 				}
 			}
 		}

@@ -1,32 +1,35 @@
 {
 	"token": "MzE4MDQxOTE2MDk0Njc3MDAy.DDBDQg.RSB0raSmkhijd8X3XDCe9TERetk",
 	"rpdir": "RP",
-	"printableSettings": ["adventure_mode", "admins", "user_rights_level"],
+	"printableSettings": ["adventure_mode", "admins", "user_rights_level", "difficulty"],
 	"defaults": {
 		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
 		"specie": {"name": "Human", "desc": "This specie is the basic specie, it hasn't any special attributes"},
 		"object": {"name": "Stick", "desc": "A stick you found is the forest, it is rather useless.", "class": "sword", "subclass": "stick",
 			"attrs": [{"name": "base_stat",
 				"values": ["ATK", "0", "int"]}]},
+		"mob": {"name": "Zombie", "desc": "Humanoid, eats flesh, walks slowly", "difficulty": 1, "attrs": [{"name": "base_stat", "values": ["ATK", "1", "int"]}], "inv": [], "holding": -1},
 		"adventure_mode": "auto",
 		"user_rights_level": 2,
 		"ATK": 4,
 		"DEF": 3,
 		"VIT": 2,
-		"MAG": 2,
+		"MGC": 2,
 		"AGI": 3,
-		"STR": 4
+		"STR": 4,
+		"HP": 20
 	},
 	"settingList": {
 		"class": "classes",
 		"specie": "species",
-		"object": "objects"
+		"object": "objects",
+		"mob": "mobs"
 	},
 	"baseStats": [
 		"ATK",
 		"DEF",
 		"VIT",
-		"MAG",
+		"MGC",
 		"AGI",
 		"STR"
 	],

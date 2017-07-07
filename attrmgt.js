@@ -4,20 +4,37 @@ exports.init = function() {
   return {
     treat: function(obj, specie, holder_class) {
       var treatedObj = {};
-      treatedObj.name = obj.name;
-      treatedObj.desc = obj.desc;
-      treatedObj.class = obj.class;
-      treatedObj.subclass = obj.subclass;
+      if (obj != null && obj != undefined) {
+        treatedObj.name = obj.name;
+        treatedObj.desc = obj.desc;
+        treatedObj.class = obj.class;
+        treatedObj.subclass = obj.subclass;
+      } else {
+        treatedObj.name = "";
+        treatedObj.desc = "";
+        treatedObj.class = "";
+        treatedObj.subclass = "";
+      }
       treatedObj.attrs = [];
       treatedObj.stats = {};
-      for (i in obj.attrs) { // NOTE: Step 1; object attrs
-        this.executeAttr(treatedObj, obj.attrs[i], true);
+      if (obj != undefined) {
+        if (obj.attrs != undefined && obj.attrs != null)
+        for (i in obj.attrs) {
+          // NOTE: Step 1; object attrs
+          this.executeAttr(treatedObj, obj.attrs[i], true);
+        }
       }
-      for (i in specie.attrs) {
-        this.executeAttr(treatedObj, specie.attrs[i], false);
+      if (specie != undefined && specie != null) {
+        if (specie.attrs != undefined && specie.attrs != null)
+        for (i in specie.attrs) {
+          this.executeAttr(treatedObj, specie.attrs[i], false);
+        }
       }
-      for (i in holder_class.attrs) {
-        this.executeAttr(treatedObj, holder_class.attrs[i], false);
+      if (holder_class != undefined && holder_class != null) {
+        if (holder_class.attrs != undefined && holder_class.attrs != null)
+        for (i in holder_class.attrs) {
+          this.executeAttr(treatedObj, holder_class.attrs[i], false);
+        }
       }
       return treatedObj;
     },
