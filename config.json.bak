@@ -17,8 +17,7 @@
 		"MGC": 2,
 		"AGI": 3,
 		"STR": 4,
-		"HP": 20,
-		"difficulty": 1
+		"HP": 20
 	},
 	"settingList": {
 		"class": "classes",
@@ -35,16 +34,6 @@
 		"STR",
 		"HP"
 	],
-	"mobStats": [
-		"ATK",
-		"DEF",
-		"VIT",
-		"MGC",
-		"AGI",
-		"STR",
-		"HP",
-		"difficulty"
-	],
 	"lang": {
 		"en": {
 			"init_alert": "*Uh oh!* RP is not ready? Let me fix that!",
@@ -56,24 +45,14 @@
 			"char_ask_specie": "What specie are you?{{SPECIES}}",
 			"char_ask_specie_success": "I see, you are a {{SPECIE}}",
 
-			"error_no_char": "I don't know you! First introduce you using `l!rp char create`",
-			"error_char_no_class": "You don't have any class? Assign yourself one using `l!rp char class`!",
-			"error_char_no_specie": "You don't have any specie? Assign yourself one using `l!rp char specie`!",
-			"error_char_class_invalid": "The class you have is invalid, it may have been deleted. Assign yourself a new one using `l!rp char class`",
-			"error_char_specie_invalid": "The specie you have is invalid, it may have been deleted. Assign yourself a new one using `l!rp char specie`",
+
 			"error_no_class": "*Uh oh!* There aren't any classes? I can't do that without any! Create one using `l!rp admin class create`! You might continue to initalise your character using `l!rp char class`",
 			"error_no_specie": "*Uh oh!* There aren't any species? I can't do that without any! Create one using `l!rp admin specie create`! You might continue to initalise your character using `l!rp char specie`",
-			"error_no_mob": "There aren't any monsters defined! Create one using `l!rp admin mob create`",
-			"error_no_object": "There aren't any objects defined! Create one using `l!rp admin object create`",
-			"error_no_room": "The room hasn't been initialised yet! Do it using `l!rp room init`",
 			"error_char_ask_class_syntax": "*Huh?* I didn't quite get your class name!",
-			"error_char_ask_specie_syntax": "*Huh?* I didn't quite get your specie name!",
-			"error_mob_name_syntax": "The mob you were looking for apparently does not exists!"
+			"error_char_ask_specie_syntax": "*Huh?* I didn't quite get your specie name!"
 		}
 	},
 	"colors": {
-		"player": 13869911,
-		"dungeon": 4619668,
-		"admin": 15987149
+		"player": 13869911
 	}
 }

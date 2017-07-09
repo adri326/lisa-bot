@@ -30,17 +30,6 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const CircularJSON = require("circular-json");
 const attrmgtR = require("./attrmgt");
-const reqs = {
-	has_char: 1,
-	has_class: 2,
-	has_specie: 4,
-	are_classes: 8,
-	are_species: 16,
-	are_mobs: 32,
-	are_objects: 64,
-	is_room: 128
-};
-
 
 var bot = new Discord.Client();
 var botdata; // Defined later
@@ -62,7 +51,6 @@ var RP = {
 		this.adventure_mode = config.defaults.adventure_mode;
 		this.admins = [creator.id];
 		this.user_rights_level = config.defaults.user_rights_level;
-		this.difficulty = config.defaults.difficulty;
 		return this;
 	},
 	set_char: function(rp, id, name) {
@@ -70,9 +58,7 @@ var RP = {
 			name: name,
 			classId: -1,
 			specieId: -1,
-			inventory: [],
-			xp: 0,
-			lvl: 1
+			inventory: []
 		};
 		rp.chars[id].ATK = config.defaults.ATK;
 		rp.chars[id].DEF = config.defaults.DEF;
@@ -80,7 +66,6 @@ var RP = {
 		rp.chars[id].MGC = config.defaults.MGC;
 		rp.chars[id].AGI = config.defaults.AGI;
 		rp.chars[id].STR = config.defaults.STR;
-		rp.chars[id].HP = config.defaults.HP;
 	}
 };
 
@@ -105,86 +90,6 @@ const Level = {
 		}
 		return level;
 	}
-}
-
-
-
-
-function _require(msg, requirements = 0) {
-	if ((requirements & reqs.has_char) == reqs.has_char) {
-		// User has character
-		if (rp[msg.channel.id].chars[msg.author.id] === undefined) {
-			replyMessage(msg, say(msg, "error_no_char"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.has_class) == reqs.has_class) {
-		// User has class
-		var user = rp[msg.channel.id].chars[msg.author.id];
-		if (user.classId == -1 || user.classId === undefined) {
-			replyMessage(msg, say(msg, "error_char_no_class"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.has_specie) == reqs.has_specie) {
-		// User has specie
-		var user = rp[msg.channel.id].chars[msg.author.id];
-		if (user.specieId == -1 || user.specieId === undefined) {
-			replyMessage(msg, say(msg, "error_char_no_specie"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.are_classes) == reqs.are_classes) {
-		// Are there classes
-		if (rp[msg.channel.id].classes === undefined || (rp[msg.channel.id].classes || []).length == 0) {
-			replyMessage(msg, say(msg, "error_no_class"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.are_species) == reqs.are_species) {
-		// Are there species
-		if (rp[msg.channel.id].species === undefined || (rp[msg.channel.id].species || []).length == 0) {
-			replyMessage(msg, say(msg, "error_no_specie"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.are_mobs) == reqs.are_mobs) {
-		// Are there mobs
-		if (rp[msg.channel.id].mobs === undefined || (rp[msg.channel.id].mobs || []).length == 0) {
-			replyMessage(msg, say(msg, "error_no_mob"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.are_objects) == reqs.are_objects) {
-		// Are there objects
-		if (rp[msg.channel.id].objects === undefined || (rp[msg.channel.id].objects || []).length == 0) {
-			replyMessage(msg, say(msg, "error_no_object"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.has_class) == reqs.has_class && (requirements & reqs.are_classes) == reqs.are_classes) {
-		// User has *valid* class
-		if (rp[msg.channel.id].classes[rp[msg.channel.id].chars[msg.author.id].classId] === undefined) {
-			replyMessage(msg, say(msg, "error_char_class_invalid"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.has_specie) == reqs.has_specie && (requirements & reqs.are_species) == reqs.are_species) {
-		// User has *valid* specie
-		if (rp[msg.channel.id].species[rp[msg.channel.id].chars[msg.author.id].specieId] === undefined) {
-			replyMessage(msg, say(msg, "error_char_specie_invalid"));
-			return false;
-		}
-	}
-	if ((requirements & reqs.is_room) === reqs.is_room) {
-		if (rp[msg.channel.id].room === undefined) {
-			replyMessage(msg, say(msg, "error_no_room"));
-			return false;
-		}
-	}
-
-
-	return true;
 }
 
 function splitCommand(str) {
@@ -225,7 +130,7 @@ function initRP(channel, creator) {
 	channel.send(config.lang[lang].init_success);
 }
 
-function createRoom(msg) {
+function create_room(msg) {
 	var difficulty = rp[msg.channel.id].difficulty;
 	var room = {
 		entities: [],
@@ -292,31 +197,17 @@ function loadRP() {
 				} else {
 					var chan = CircularJSON.parse(data.toString());
 					for (x in chan.chars) {
-						if (chan.chars[x].HP === undefined) {
+						if (chan.chars[x].HP == undefined) {
 							chan.chars[x].HP = config.defaults.HP;
-							console.log(items[i] + ": char(" + x + ").HP");
 							problems++;
 						}
-						if (chan.chars[x].holding === undefined) {
+						if (chan.chars[x].holding == undefined) {
 							chan.chars[x].holding = -1;
-							console.log(items[i] + ": char(" + x + ").holding");
-							problems++;
-						}
-						if (chan.chars[x].xp === undefined || chan.chars[x].lvl === undefined) {
-							chan.chars[x].xp = 0;
-							chan.chars[x].lvl = 1;
-							console.log(items[i] + ": char(" + x + ").xp");
 							problems++;
 						}
 					}
-					if (chan.mobs === undefined) {
+					if (chan.mobs == undefined) {
 						chan.mobs = [config.defaults.mob];
-						console.log(items[i] + ": mobs");
-						problems++;
-					}
-					if (chan.difficulty === undefined) {
-						chan.difficulty = config.defaults.difficulty;
-						console.log(items[i] + ": difficulty");
 						problems++;
 					}
 					rp[chan.id] = chan;
@@ -346,7 +237,7 @@ function listClass(msg) {
 }
 function askClass(msg) {
 	// NOTE: Ask CLASS
-	if (_require(msg, reqs.are_classes)) {
+	if (rp[msg.channel.id].classes !== null && rp[msg.channel.id].classes.length > 0) {
 
 
 		replyMessage(msg, say(msg, "char_ask_class"));
@@ -369,6 +260,8 @@ function askClass(msg) {
 			}
 
 		});
+	} else {
+		replyMessage(msg, say(msg, "error_no_class"));
 	}
 }
 function listSpecie(msg) {
@@ -382,7 +275,7 @@ function listSpecie(msg) {
 }
 function askSpecie(msg) {
 	// NOTE: Ask SPECIE
-	if (_require(msg, reqs.are_species)) {
+	if (rp[msg.channel.id].species !== null && rp[msg.channel.id].species.length > 0) {
 		replyMessage(msg, say(msg, "char_ask_specie"));
 		talk(msg, function(msg) {
 			var foundSpecie = -1;
@@ -401,90 +294,91 @@ function askSpecie(msg) {
 			}
 
 		});
+	} else {
+		replyMessage(msg, say(msg, "error_no_specie"));
 	}
 }
 
 function applySpecieAttrs(msg, specieId) {
-	if (_require(msg, reqs.has_char | reqs.are_species)) {
-		var char = rp[msg.channel.id].chars[msg.author.id];
-		var specie = rp[msg.channel.id].species[specieId];
-		if (specie.base != null) {
-			char.ATK = specie.attrs.ATK | config.defaults.ATK;
-			char.DEF = specie.attrs.DEF | config.defaults.DEF;
-			char.VIT = specie.attrs.VIT | config.defaults.VIT;
-			char.MGC = specie.attrs.MAG | config.defaults.MAG;
-			char.AGI = specie.attrs.AGI | config.defaults.AGI;
-			char.STR = specie.attrs.STR | config.defaults.STR;
-		} else {
-			char.ATK = config.defaults.ATK;
-			char.DEF = config.defaults.DEF;
-			char.VIT = config.defaults.VIT;
-			char.MGC = config.defaults.MAG;
-			char.AGI = config.defaults.AGI;
-			char.STR = config.defaults.STR;
-		}
+	var char = rp[msg.channel.id].chars[msg.author.id];
+	var specie = rp[msg.channel.id].species[specieId];
+	if (specie.base != null) {
+		char.ATK = specie.attrs.ATK | config.defaults.ATK;
+		char.DEF = specie.attrs.DEF | config.defaults.DEF;
+		char.VIT = specie.attrs.VIT | config.defaults.VIT;
+		char.MGC = specie.attrs.MAG | config.defaults.MAG;
+		char.AGI = specie.attrs.AGI | config.defaults.AGI;
+		char.STR = specie.attrs.STR | config.defaults.STR;
+	} else {
+		char.ATK = config.defaults.ATK;
+		char.DEF = config.defaults.DEF;
+		char.VIT = config.defaults.VIT;
+		char.MGC = config.defaults.MAG;
+		char.AGI = config.defaults.AGI;
+		char.STR = config.defaults.STR;
 	}
 }
 
 function displayChar(msg) {
-	if (_require(msg, reqs.has_char | reqs.has_specie | reqs.has_class | reqs.are_classes | reqs.are_species)) {
-		var actChar = rp[msg.channel.id].chars[msg.author.id];
+	var actChar = rp[msg.channel.id].chars[msg.author.id];
+	if (actChar != null) {
 		var embed = {color: config.colors.player,
 			author: {name: actChar.name, icon_url: msg.author.avatarURL},
 			fields: []};
 		var actClass = rp[msg.channel.id].classes[actChar.classId];
 		var actSpecie = rp[msg.channel.id].species[actChar.specieId];
-		embed.fields.push({name: ("Class: " + actClass.name), value: actClass.desc});
-		embed.fields.push({name: ("Specie: " + actSpecie.name), value: actSpecie.desc});
-		var n = 0, stats = "";
-		for (stat in config.baseStats) {
-			n++;
-			stats = stats + "**" + config.baseStats[stat] + "**: " + Math.round(actChar[config.baseStats[stat]]*10)/10 + "\t";
-			if (n%3 == 0) {
-				stats = stats + "\r\n";
+		if (actClass != null && actSpecie != null) {
+			embed.fields.push({name: ("Class: " + actClass.name), value: actClass.desc});
+			embed.fields.push({name: ("Specie: " + actSpecie.name), value: actSpecie.desc});
+
+			var stats = "";
+			for (stat in config.baseStats) {
+				stats = stats + "**" + config.baseStats[stat] + "**: " + actChar[config.baseStats[stat]] + "\r\n";
 			}
+			embed.fields.push({name: "Statistics", value: stats});
+			replyMessage(msg, {embed: embed});
+		} else if (actChar.classId == -1 || actChar.specieId == -1) {
+			replyMessage(msg, "*The class or the specie hasn't been initialised yet*: ```\r\nclass: " + (actChar.classId != -1) + "\r\nspecie: " + (actChar.specieId != -1) + "```")
+		} else {
+			replyMessage(msg, "*There isn't any classes or species yet, first create one using `RP admin class create` and assign it using `RP char class`*!");
+
 		}
-		embed.fields.push({name: "Statistics", value: stats});
-		var lxp = actChar.lvl * actChar.lvl * 100;
-		embed.fields.push({name: "Level " + actChar.lvl, value: "xp: " + actChar.xp + "/" + lxp});
-		replyMessage(msg, {embed: embed});
+	} else {
+		replyMessage(msg, "*I don't know you! First introduce you using `RP char create`*!");
 	}
 }
-
 function displayInv(msg) {
-	if (_require(msg, reqs.has_char | reqs.are_objects)) {
-		var actChar = rp[msg.channel.id].chars[msg.author.id];
-		var embed = {
-			color: config.colors.player,
-			author: {name: actChar.name + "'s inventory'", icon_url: msg.author.avatarURL},
-			fields: []
-		};
+	var actChar = rp[msg.channel.id].chars[msg.author.id];
+	var embed = {
+		color: config.colors.player,
+		author: {name: actChar.name + "'s inventory'", icon_url: msg.author.avatarURL},
+		fields: []
+	};
 
-		if (actChar.inventory != undefined && actChar.inventory.length != 0) {
-			var string = "";
-			for (item in actChar.inventory) {
-				string = string + "\r\n" + displayItem(msg, rp[msg.channel.id].objects[actChar.inventory[item].id]);
-				if (actChar.inventory[item].quantity != 1) {
-					string = string + " (" + actChar.inventory[item].quantity + "x)";
-				}
+	if (actChar.inventory != undefined && actChar.inventory.length != 0) {
+		var string = "";
+		for (item in actChar.inventory) {
+			string = string + "\r\n" + displayItem(msg, rp[msg.channel.id].objects[actChar.inventory[item].id]);
+			if (actChar.inventory[item].quantity != 1) {
+				string = string + " (" + actChar.inventory[item].quantity + "x)";
 			}
-			embed.fields.push({name: "Inventory", value: string});
-		} else {
-			if (actChar.inventory == undefined) {
-				actChar.inventory = [];
-			}
-			embed.fields.push({name: "Inventory", value: "*Empty*"});
 		}
-		if (actChar.holding == -1) {
-			embed.fields.push({name: "Holding", value: "*Nothing*"});
-		} else {
-			embed.fields.push({name: "Holding", value: displayItem(msg, rp[msg.channel.id].objects[actChar.holding])});
+		embed.fields.push({name: "Inventory", value: string});
+	} else {
+		if (actChar.inventory == undefined) {
+			actChar.inventory = [];
 		}
-		replyMessage(msg, {embed: embed});
+		embed.fields.push({name: "Inventory", value: "*Empty*"});
 	}
+	if (actChar.holding == -1) {
+		embed.fields.push({name: "Holding", value: "*Nothing*"});
+	} else {
+		embed.fields.push({name: "Holding", value: displayItem(msg, rp[msg.channel.id].objects[actChar.holding])});
+	}
+	replyMessage(msg, {embed: embed});
 }
 function displayItem(msg, item, desc = false) {
-	// TODO: remove msg
+
 	var string = item.name;
 	if (desc) {
 		if (item.desc != undefined) {
@@ -516,38 +410,80 @@ function displayItem(msg, item, desc = false) {
 	}
 	return string;
 }
+function displayLevel(level, level_atop) {
+	var height = level.length, width = level[0].length;
+	var string = "";
+	for (y = 0; y < height; y++) {
+		string = string + "\r\n";
 
-function displayRoom(msg) {
-	if (_require(msg, reqs.is_room | reqs.are_mobs | reqs.are_objects)) {
-		var actRoom = rp[msg.channel.id].room;
-		var embed = {
-			color: config.colors.dungeon,
-			title: "Room",
-			fields: []
-		};
-		var string = "";
-		if (actRoom.entities !== undefined) {
-			if (actRoom.entities.length > 0) {
-				for (i in actRoom.entities) {
-					var parent = rp[msg.channel.id].mobs[actRoom.entities[i].id];
-					string = string + parent.name;
-					if (parent.HP != undefined) string = string + " (" + (actRoom.entities[i].HP | "Error") + "/" + parent.HP + ")";
-					if (actRoom.entities[i].holding != -1 && actRoom.entities[i].holding != undefined) {
-						var item = rp[msg.channel.id].items[actRoom.entities[i]];
-						if (item != undefined) string = string + "[" + item.name + "]";
-					}
-					string = string + "\r\n";
-				}
+		if (y == 0) {
+			// NOTE: First line
+			string = string + border(1, 0, 0, 1);
+			for (x = 0; x < width - 1; x++) {
+				string = string + border(1, 0, 1, 0);
+				string = string + border(1, 0, 1, 0);
+				string = string + border(1, 0, 1, 0);
+				string = string + border(1, 0, 1, 1);
 			}
-			else {
-				string = string + "*Nobody's here* D:";
-			}
+			string = string + border(1, 0, 1, 0);
+			string = string + border(1, 0, 1, 0);
+			string = string + border(1, 0, 1, 0);
+			string = string + border(0, 0, 1, 1);
 		}
 		else {
-			string = string + "*Nobody's here* D:";
+			// NOTE: all the other in-between lines
+			string = string + border(1, 1, 0, 1);
+			for (x = 0; x < width - 1; x++) {
+				string = string + border(1, 0, 1, 0);
+				string = string + border(1, 0, 1, 0);
+				string = string + border(1, 0, 1, 0);
+				string = string + border(1, 1, 1, 1);
+			}
+			string = string + border(1, 0, 1, 0);
+			string = string + border(1, 0, 1, 0);
+			string = string + border(1, 0, 1, 0);
+			string = string + border(0, 1, 1, 1);
 		}
-		embed.fields.push({name: "Entities", value: string});
-		replyMessage(msg, {embed: embed});
+
+		string = string + "\r\n";
+
+		for (x = 0; x < width; x++) {
+			string = string + border(0, 1, 0, 1);
+			string = string + " ";
+			if (level[y][x].indexOf("stair") > -1) {
+				if (level_atop != undefined && level_atop[y][x].indexOf("stair") > -1) {
+					string = string + String.fromCharCode(0x2195);
+				} else {
+					string = string + String.fromCharCode(0x2193);
+				}
+			} else {
+				if (level_atop != undefined && level_atop[y][x].indexOf("stair") > -1) {
+					string = string + String.fromCharCode(0x2191);
+				} else {
+					string = string + " ";
+				}
+			}
+			string = string + " ";
+		}
+
+		string = string + border(0, 1, 0, 1);
+	}
+	// Last line
+	{
+		// NOTE: The last border line
+		string = string + "\r\n";
+		string = string + border(1, 1, 0, 0);
+		for (x = 0; x < width - 1; x++) {
+			string = string + border(1, 0, 1, 0);
+			string = string + border(1, 0, 1, 0);
+			string = string + border(1, 0, 1, 0);
+			string = string + border(1, 1, 1, 0);
+		}
+		string = string + border(1, 0, 1, 0);
+		string = string + border(1, 0, 1, 0);
+		string = string + border(1, 0, 1, 0);
+		string = string + border(0, 1, 1, 0);
+		return string;
 	}
 }
 
@@ -603,25 +539,12 @@ bot.on("ready", () => {
 	setInterval(() => {
 		//console.log("Saving RPs...");
 		for (i in rp) {
-			saveRP(i);
+			saveRP(rp[i]);
 		}
 	}, 30000);
 });
 
 bot.on("message", msg => {
-	try {
-		treatMsg(msg);
-	}
-	catch (err) {
-		replyMessage(msg, {embed: {
-			color: 0x85171e,
-			title: err.name,
-			description: err.message
-		}});
-		console.log(err);
-	}
-});
-function treatMsg(msg) {
 	if (!msg.content.startsWith("l!")) {
 		if (talking[msg.channel.id] != null) {
 			if (msg.author.id == talking[msg.channel.id].id && talking[msg.channel.id].state) {
@@ -656,14 +579,13 @@ function treatMsg(msg) {
 
 		if (command.startsWith("RP") || command == "RP" || command.startsWith("rp") || command == "rp") {
 
-			if (rp[msg.channel.id] == null || rp[msg.channel.id] == undefined) {
+			if (rp[msg.channel.id] == null || rp[msg.channel.id] == undefined ||
+				rp[msg.channel.id].id != msg.channel.id) {
 				// NOTE: Init RP if not done
+				if (rp[msg.channel.id].id != msg.channel.id)
+					replyMessage(msg, "There was an error in the configuration!");
 				initRP(msg.channel, msg.author);
 
-			}
-			else if (rp[msg.channel.id].id != msg.channel.id) {
-				replyMessage(msg, "There was an error in the configuration!");
-				initRP(msg.channel, msg.author);
 			}
 			else {
 
@@ -775,8 +697,6 @@ function treatMsg(msg) {
 								var objectFound = false;
 								for (item in actChar.inventory) {
 									if (actChar.inventory[item].id == objectId) {
-										if (actChar.holding != -1 && actChar.holding != undefined)
-											actChar.inventory.push({id: actChar.holding, quantity: 1});
 										actChar.holding = objectId;
 										actChar.inventory.splice(item, 1);
 										replyMessage(msg, "Successfully equiped the item "+commandParts[3]);
@@ -789,29 +709,6 @@ function treatMsg(msg) {
 							} else {
 								replyMessage(msg, "Item not found!");
 							}
-						}
-					}
-				}
-				else if (commandParts[1] == "room") {
-					if (commandParts[2] == undefined) {
-						displayRoom(msg);
-					}
-					else if (commandParts[2] == "next") {
-						if (_require(msg, reqs.is_room | reqs.are_mobs)) {
-							if (rp[msg.channel.id].room.entities.length == 0) {
-								rp[msg.channel.id].room = createRoom(msg);
-								replyMessage(msg, "Moved to the next room!");
-								displayRoom(msg);
-							}
-							else {
-								replyMessage(msg, "Not every mob has been killed!");
-							}
-						}
-					}
-					else if (commandParts[2] == "init") {
-						if (rp[msg.channel.id].room == undefined) {
-							rp[msg.channel.id].room = createRoom(msg);
-							displayRoom(msg);
 						}
 					}
 				}
@@ -883,8 +780,8 @@ function treatMsg(msg) {
 
 						var string = "";
 
-						//rp[msg.channel.id].mobs = [config.defaults.mob];
-						rp[msg.channel.id].room = createRoom(msg);
+						rp[msg.channel.id].mobs = [config.defaults.mob];
+						rp[msg.channel.id].room = create_room(msg);
 
 						/*rp[msg.channel.id].dungeon = [Level.new(4, 4, 0, 2, 1)];
 						rp[msg.channel.id].position
@@ -963,28 +860,16 @@ function treatMsg(msg) {
 						else if (commandParts[3] == "list") {
 							// NOTE: List elements w/ or w/o their attrs
 							// TODO: Separate in multiple messages
-							var embed = {
-								color: config.colors.admin,
-								title: ("List of " + commandParts[2]),
-								fields: []
-							};
+							var string = "";
 							for (i in actSetting) {
-								var string = "";
-								string = string + "*" + actSetting[i].desc + "*";
+								string = string + "\r\n" + actSetting[i].name + ": *" + actSetting[i].desc + "*";
 								if (commandParts[2] == "object") {
-									//Display the class and the subclass for objects
+
 									string = string + "; @" + actSetting[i].class + "/" + actSetting[i].subclass;
-								}
-								if (commandParts[2] == "mob") {
-									//Display the HP, ATK and so on...
-									for (j in config.mobStats) {
-										if (actSetting[i][config.mobStats[j]] != undefined) {
-											string = string + "\r\n" + config.mobStats[j] +": " + actSetting[i][config.mobStats[j]];
-										}
-									}
+
 								}
 								if (commandParts[4] == "attrs") {
-									string = string + "\r\n```json";
+									string = string + "\r\n\t*attrs*:```";
 									for (j in actSetting[i].attrs) {
 										string = string + "\r\n[" + j + "] " + actSetting[i].attrs[j].name;
 										for (k in actSetting[i].attrs[j].values) {
@@ -994,9 +879,8 @@ function treatMsg(msg) {
 									string = string + " ```";
 
 								}
-								embed.fields.push({name: actSetting[i].name, value: string});
 							}
-							replyMessage(msg, {embed: embed});
+							replyMessage(msg, string);
 
 						}
 						else if (commandParts[3] == "remove") {
@@ -1095,7 +979,7 @@ function treatMsg(msg) {
 							var talk_obj = talk(msg, msg => {
 								var actSetting = getTalking(msg).actSetting;
 								var command = splitCommand(msg.content);
-								if (config.mobStats.indexOf(command[1]) > -1) {
+								if (config.baseStats.indexOf(command[1]) > -1) {
 									for (i in actSetting) {
 										if (command[0]==actSetting[i].name) {
 											actSetting[i][command[1]] = parseFloat(command[2]);
@@ -1107,86 +991,47 @@ function treatMsg(msg) {
 							talk_obj.actSetting = actSetting;
 						}
 					}
-					else if (commandParts[2] == "summon") {
-						var name = splitCommand(command.slice(15).trim())[0];
-						var mobId = getObjectId(rp[msg.channel.id].mobs, name);
-						if (mobId != -1) {
-							var mob = rp[msg.channel.id].mobs[mobId];
-							var actRoom = rp[msg.channel.id].room;
-							actRoom.entities.push({id: mobId, HP: mob.HP});
-							replyMessage(msg, "Successfully summoned the mob " + name + "!");
-						}
-						else {
-							replyMessage(msg, "I couldn't find the mob you were looking for!");
-						}
-					}
-					else if (commandParts[2] == "kill") {
-						var name = splitCommand(command.slice(13).trim())[0];
-						var mobId = getObjectId(rp[msg.channel.id].mobs, name);
-						if (mobId != -1) {
-							var mob = rp[msg.channel.id].mobs[mobId];
-							var actRoom = rp[msg.channel.id].room;
-							actRoom.entities.splice(mobId, 1);
-							replyMessage(msg, "Successfully killed the mob " + name + "!");
-						}
-					}
-					else {
-						replyMessage(msg, "I couldn't find the mob you were looking for!");
-					}
 				}
 				else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
-					if (_require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room)) {
-						// TODO: separate the player => mob and the mob => player, to make ALL the mob attack
-						var actRoom = rp[msg.channel.id].room;
-						var targetId = Math.floor(random(0, actRoom.entities.length));
-						if (commandParts[2] != undefined) {
-							targetId = getObjectId(actRoom.entities, commandParts[2]);
-						}
-						if (targetId != -1) {
-							var player_raw = rp[msg.channel.id].chars[msg.author.id];
-							var player = {};
-							player.item = attrmgt.treat(rp[msg.channel.id].objects[player_raw.holding], rp[msg.channel.id].species[player_raw.specieId | -1], rp[msg.channel.id].classes[player_raw.classId | -1]);
-							player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0);
-							player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0);
-							//console.log(CircularJSON.stringify(player));
-							var mob_impl = actRoom.entities[targetId];
-							var mob_raw = rp[msg.channel.id].mobs[mob_impl.id];
-							var mob = {};
-							mob.item = attrmgt.treat(rp[msg.channel.id].objects[mob_raw.holding], rp[msg.channel.id].species[mob_raw.specieId | -1], rp[msg.channel.id].classes[mob_raw.classId | -1]);
-							mob.ATK = (mob.item.stats.ATK || 0) + (mob_raw.ATK || 0);
-							mob.DEF = (mob.item.stats.DEF || 0) + (mob_raw.DEF || 0);
-							//console.log(CircularJSON.stringify(mob));
-							var PtMdmg = (player.ATK) / (0.01 * mob.DEF * mob.DEF + 1);
-							var MtPdmg = (mob.ATK) / (0.01 * player.DEF * player.DEF + 1);
-
-							mob_impl.HP -= PtMdmg;
-
-							if (mob_impl.HP <= 0) {
-								// Give the xp to the player
-								var xp_togive = mob_impl.difficulty * mob_raw.HP
-								replyMessage(msg, "You killed " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage!");
-								actRoom.entities.splice(targetId, 1);
-							} else {
-								replyMessage(msg, "You hit " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.");
-								player_raw.HP -= MtPdmg;
-
-								if (player_raw.HP <= 0) {
-									// TODO: le reste ici
-									replyMessage(msg, "You took " + Math.round(MtPdmg*10)/10 + " and YOU DIED. But idk what death is, so I'm gonna give you your health back!");
-									player_raw.HP = 20;
-								} else {
-									replyMessage(msg, "You took " + Math.round(MtPdmg*10)/10 + " of damage from " + mob_raw.name + ". " + Math.round(player_raw.HP*10)/10 + " HP left.");
-								}
-							}
-						} else {
-							replyMessage(msg, say(msg, "error_mob_name_syntax"));
-						}
+					// TODO: separate the player => mob and the mob => player, to make ALL the mob attack
+					var actRoom = rp[msg.channel.id].room;
+					var targetId = Math.floor(random(0, actRoom.entities.length));
+					if (commandParts[2] != undefined) {
+						targetId = getObjectId(actRoom.entities, commandParts[2]);
 					}
+					var player_raw = rp[msg.channel.id].chars[msg.author.id];
+					var player = {};
+					player.item = attrmgt.treat(rp[msg.channel.id].objects[player_raw.holding], rp[msg.channel.id].species[player_raw.specieId | -1], rp[msg.channel.id].classes[player_raw.classId | -1]);
+					player.ATK = (player.item.stats.ATK | 0) + (player_raw.ATK | 0);
+					player.DEF = (player.item.stats.DEF | 0) + (player_raw.DEF | 0);
+					//console.log(CircularJSON.stringify(player));
+					var mob_impl = actRoom.entities[targetId];
+					var mob_raw = rp[msg.channel.id].mobs[mob_impl.id];
+					var mob = {};
+					mob.item = attrmgt.treat(rp[msg.channel.id].objects[mob_raw.holding], rp[msg.channel.id].species[mob_raw.specieId | -1], rp[msg.channel.id].classes[mob_raw.classId | -1]);
+					mob.ATK = (mob.item.stats.ATK | 0) + (mob_raw.ATK | 0);
+					mob.DEF = (mob.item.stats.DEF | 0) + (mob_raw.DEF | 0);
+					//console.log(CircularJSON.stringify(mob));
+					var PtMdmg = (player.ATK) / (0.01 * mob.DEF * mob.DEF + 1);
+					var MtPdmg = (mob.ATK) / (0.01 * player.DEF * player.DEF + 1);
+
+					mob_impl.HP -= PtMdmg;
+
+					if (mob_impl.HP <= 0) {
+						replyMessage(msg, "You killed " + mob_raw.name + " with " + PtMdmg + " of damage!");
+						actRoom.entities.splice(targetId, 1);
+					} else {
+						replyMessage(msg, "You hit " + mob_raw.name + " with " + Math.floor(PtMdmg*10)/10 + " of damage. " + Math.floor(mob_impl.HP*10)/10  + " HP left.");
+						player_raw.HP -= MtPdmg;
+						replyMessage(msg, "You took " + Math.floor(MtPdmg*10)/10 + " of damage from " + mob_raw.name + ". " + Math.floor(player_raw.HP*10)/10 + " HP left.")
+					}
+					//console.log(PtMdmg);
+					//console.log(MtPdmg);
 				}
 			}
 		}
 	}
-}
+});
 
 console.log("Reading config.json ...");
 
@@ -1211,27 +1056,3 @@ fs.readFile("./config.json", (err, data) => {
 
 console.log("Initialising attrmgt ...");
 var attrmgt = attrmgtR.init();
-
-function exitHandler(options, err) {
-	if (options.exception === undefined) {
-		if (options.exit === undefined) {
-			console.log("");
-			console.log("Disconnecting...");
-			bot.destroy((err) => {
-				console.log("Error while disconnecting!");
-			});
-			console.log("Attempting to save all the data...");
-			for (i in rp) {
-				saveRP(i);
-			}
-			console.log("Goodbye!");
-		}
-		process.exit();
-	} else {
-		console.error("Caught that exception just before our death, Sir: ", err);
-	}
-}
-
-process.on("exit", exitHandler.bind(null, {exit: true}));
-process.on("SIGINT", exitHandler.bind(null, {}));
-process.on("uncaughtException", exitHandler.bind(null, {exception: true}));
