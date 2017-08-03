@@ -174,6 +174,7 @@
 		"give_cheat": 0,
 		"hold": {"base": 2, "speed": 1},
 		"eat": {"base": 4, "speed": 3.5, "speed_range": 20},
-		"turn": 1
+		"turn": 1,
+		"attack": 2
 	}
 }

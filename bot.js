@@ -767,60 +767,31 @@ function treatMsg(msg) {
 							var player_raw = rp[msg.channel].chars[msg.author];
 							var player = {};
 							player.item = attrmgt.treat(rp[msg.channel].objects[player_raw.holding], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
-							player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0);
-							player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0);
 							player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0);
-							//console.log(CircularJSON.stringify(player));
-							var mob_impl = actRoom.entities[targetId];
-							var mob_raw = rp[msg.channel].mobs[mob_impl.id];
-							var mob = {};
-							mob.item = attrmgt.treat(rp[msg.channel].objects[mob_impl.holding], rp[msg.channel].species[mob_raw.specieId | -1], rp[msg.channel].classes[mob_raw.classId | -1]);
-							mob.ATK = (mob.item.stats.ATK || 0) + (mob_raw.ATK || 0);
-							mob.DEF = (mob.item.stats.DEF || 0) + (mob_raw.DEF || 0);
-							//console.log(CircularJSON.stringify(mob));
-							var PtMdmg = (player.ATK) / (0.01 * mob.DEF * mob.DEF + 1);
-							var MtPdmg = (mob.ATK) / (0.01 * player.DEF * player.DEF + 1);
-
-							mob_impl.HP -= PtMdmg;
 							if (player.VIT < 0) {
-								turn_amount += 1-player.VIT;
+								turn_amount += 1-player.VIT*combat.action_time(msg, "attack");
 							} else {
-								turn_amount += 1-utils.sigma(player.VIT);
+								turn_amount += 1-utils.sigma(player.VIT/combat.action_time(msg, "attack"));
 							}
-							if (mob_impl.HP <= 0) {
-								// Give the xp to the player
-								var xp_togive = mob_impl.difficulty * mob_raw.HP
-								utils.replyMessage(msg, "You killed " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage!");
-
-								actRoom.entities.splice(targetId, 1);
-
-								var xp = utils.getObjectID(mob_raw.attrs, "xp_drop");
-								if (xp != -1) {
-									var a = parseInt(mob_raw.attrs[xp].values[0]);
-									var b = parseInt(mob_raw.attrs[xp].values[1]);
-									if (a !== null && b !== null) {
-										combat.give_xp(msg, player_raw, utils.random(a, b), true);
-									} else {
-										utils.replyMessage(msg, io.say(msg, "error_attr_syntax"));
-									}
-								}
-							} else {
-								utils.replyMessage(msg, "You hit " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.");
-
-
-								// TODO: remove that thing
-								player_raw.HP -= MtPdmg;
-
-								if (player_raw.HP <= 0) {
-									// TODO: le reste ici
-									utils.replyMessage(msg, "You took " + Math.round(MtPdmg*10)/10 + " and YOU DIED. But idk what death is, so I'm gonna give you your health back!");
-									player_raw.HP = 20;
-								} else {
-									utils.replyMessage(msg, "You took " + Math.round(MtPdmg*10)/10 + " of damage from " + mob_raw.name + ". " + Math.round(player_raw.HP*10)/10 + " HP left.");
-								}
-							}
+							combat.combat(msg, msg.author, targetId, false, true);
 						} else {
 							utils.replyMessage(msg, io.say(msg, "error_mob_name_syntax"));
+						}
+					}
+				}
+				if (rp[msg.channel].turn_type == 0) {
+					if (turn_amount > 0) {
+						if (turn_amount > 1) {
+							for (; turn_amount > 1; turn_amount--) { // Loop back into turn_amount until it reaches a value below 1
+								var targetId = Math.floor(utils.random(0, actRoom.entities.length));
+								combat.mob_action(msg, targetId);
+							}
+						}
+						if (turn_amount > 0) {
+							if (utils.random(0, 1)>turn_amount) {
+								var targetId = Math.floor(utils.random(0, actRoom.entities.length));
+								combat.mob_action(msg, targetId);
+							}
 						}
 					}
 				}
@@ -861,8 +832,6 @@ fs.readFile("./config.json", (err, data) => {
 		onLoadedTime = new Date().getTime();
 
 		token = data.toString().trim();
-
-		console.log(token);
 
 		bot.login(token);
 	});
