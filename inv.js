@@ -27,12 +27,14 @@ exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
         utils.replyMessage(msg, "Successully gave item to " + rp[msg.channel].chars[player].name + "!");
         return true;
       } else {
-        if (quantity==1)
+        if (quantity==1) {
           utils.replyMessage(msg, say("error_item_not_in_possession"));
           return false;
-        else
+        }
+        else {
           utils.replyMessage(msg, say("error_not_enough_item_in_possession"));
           return false;
+        }
       }
     } else {
       utils.replyMessage(msg, "I couldn't find the object you were looking for!");
