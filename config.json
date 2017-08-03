@@ -88,6 +88,8 @@
 			"char_ask_class_success": "Alright! You are a {{CLASS}}!",
 			"char_ask_specie": "What specie are you?{{SPECIES}}",
 			"char_ask_specie_success": "I see, you are a {{SPECIE}}",
+			"import_preset_success": "Successfully imported the preset `[[4]]`",
+			"remove_preset_success": "Successfully removed the preset `[[4]]`",
 
 			"error_no_char": "I don't know you! First introduce you using `l!rp char create`",
 			"error_char_no_class": "You don't have any class? Assign yourself one using `l!rp char class`!",

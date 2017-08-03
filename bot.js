@@ -205,7 +205,18 @@ bot.on("ready", () => {
 
 bot.on("message", msg => {
 	try {
-		treatMsg(msg);
+		var message_split = msg.content.split("\n");
+		for (msg_index in message_split) {
+			const msg_t = {
+				content: message_split[msg_index],
+				author: msg.author.id,
+				author_username: msg.author.username,
+				author_discriminator: msg.author.discriminator,
+				channel: msg.channel.id,
+				guild: msg.channel.guild.id
+			};
+			treatMsg(msg_t);
+		}
 	}
 	catch (err) {
 		utils.replyMessage(msg, {embed: {
@@ -216,28 +227,22 @@ bot.on("message", msg => {
 		console.log(err);
 	}
 });
-function treatMsg(message) {
-	const msg = {
-		content: message.content,
-		author: message.author.id,
-		channel: message.channel.id,
-		guild: message.channel.guild.id
-	};
+function treatMsg(msg) {
 	if (!msg.content.startsWith("l!")) {
 		if (talking[msg.channel] != null) {
 			if (msg.author == talking[msg.channel].id && talking[msg.channel].state) {
-				utils.logMessage(message);
+				utils.logMessage(msg);
 				talking[msg.channel].state = false;
 				talking[msg.channel].trigger(msg);
 			}
 		}
 	}
 
-	if (message.content.startsWith("l!")) {
-		utils.logMessage(message);
+	if (msg.content.startsWith("l!")) {
+		utils.logMessage(msg);
 
 		//Trims the message and separate the command
-		const command = message.content.slice(2);
+		const command = msg.content.slice(2);
 		const commandParts = utils.splitCommand(msg.content);
 
 
@@ -714,36 +719,12 @@ function treatMsg(message) {
 							utils.replyMessage(msg, "I couldn't find the mob you were looking for!");
 						}
 					}
-					else if (commandParts[2] == "import") {
-						var preset = presets[commandParts[3]] || presets[utils.getObjectID(presets, commandParts[3])];
-						if (preset != undefined) {
-							for (setting in config.settingList) {
-								var actSetting = rp[msg.channel][config.settingList[setting]];
-								var foundElements = [];
-								for (item in actSetting) {
-									var id = utils.getObjectID(preset[config.settingList[setting]], actSetting[item].name);
-									if (id != -1) {
-										var foundPreset = preset[config.settingList[setting]][id];
-										if (actSetting[item].source == preset.id) {
-											actSetting[item] = Object.assign({}, foundPreset, {source: preset.id});
-										}
-										foundElements.push(actSetting[item].name);
-									} else {
-										if (actSetting[item].source == preset.id) {
-											actSetting.splice(item, 1);
-										}
-									}
-								}
-								for (item in preset[config.settingList[setting]]) {
-									var actPreset = preset[config.settingList[setting]][item];
-									if (foundElements.indexOf(actPreset.name) <= -1) {
-										actSetting.push(Object.assign({}, actPreset, {source: preset.id}));
-									}
-								}
-							}
-							utils.replyMessage(msg, "Imported the preset!");
-						} else {
-							utils.replyMessage(msg, say("error_preset_not_found"));
+					else if (commandParts[2] == "presets") {
+						if (commandParts[3] == "import") {
+							presets_mod.import(msg, commandParts[4]);
+						}
+						else if (commandParts[3] == "remove") {
+							presets_mod.remove(msg, commandParts[4]);
 						}
 					}
 				}

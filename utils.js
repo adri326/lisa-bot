@@ -101,7 +101,7 @@ exports.replyMessage = function(msg, content) {
 }
 
 exports.logMessage = function(msg) {
-	console.log(msg.author.username + ":" + msg.author.discriminator + " => " + msg.content); // Log message content
+	console.log(msg.author_username + ":" + msg.author_discriminator + " => " + msg.content); // Log message content
 }
 
 exports.getObjectID = function(obj_list, name) {

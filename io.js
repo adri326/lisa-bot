@@ -9,16 +9,32 @@ exports.say = function(msg, msg_name) {
 	var string = config.lang[lang][msg_name];
   if (string !== undefined) {
   	try {
-  		if (string.indexOf("{{NAME}}")>-1)
+  		if (string.indexOf("{{NAME}}")>-1) // Replace {{NAME}} by the author's character name TODO: add fallback on the user's pseudo
   			string = string.replace("{{NAME}}", rp[msg.channel].chars[msg.author].name);
-  		if (string.indexOf("{{CLASSES}}")>-1)
+  		if (string.indexOf("{{CLASSES}}")>-1) // Replace {{CLASSES}} by a list of the available classes
   			string = string.replace("{{CLASSES}}", module.exports.listClass(msg));
-  		if (string.indexOf("{{SPECIES}}")>-1)
+  		if (string.indexOf("{{SPECIES}}")>-1) // Replace {{SPECIES}} by a list of the available species
   			string = string.replace("{{SPECIES}}", module.exports.listSpecie(msg));
-  		if (string.indexOf("{{CLASS}}")>-1)
+  		if (string.indexOf("{{CLASS}}")>-1) // Replace {{CLASS}} by the class of the character of the author
   			string = string.replace("{{CLASS}}", rp[msg.channel].classes[rp[msg.channel].chars[msg.author].classId].name);
-  		if (string.indexOf("{{SPECIE}}")>-1)
+  		if (string.indexOf("{{SPECIE}}")>-1) // Replace {{SPECIE}} by the specie of the character of the author
   			string = string.replace("{{SPECIE}}", rp[msg.channel].species[rp[msg.channel].chars[msg.author].specieId].name);
+			{ // Replace [[%n%]] by the word of the command located at {n} (excluding "l!")
+				var s = 0, e = 0;
+				while (s > -1 && e > -1) {
+					if ((s = string.indexOf("[[")) > -1) { // Find the first brackets
+						if ((e = string.slice(s).indexOf("]]")) > -1) { // Find the second brackets
+							var u = string.slice(s+2, s+e);
+							console.log(u);
+							if (u != "" && u !== null && +u !== null) {
+								string = string.replace("[["+u+"]]", utils.splitCommand(msg.content.slice(2))[+u]);
+							} else {
+								break;
+							}
+						}
+					}
+				}
+			}
   	} catch (err) {
   		console.log(err);
   	}
