@@ -335,7 +335,7 @@ function treatMsg(msg) {
 						}
 					}
 					else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
-						turn_amount += combat.action_time("give_cheat");
+						turn_amount += combat.action_time(msg, "give_cheat");
 						if (commandParts[3] == "self" && canCheat(msg)) {
 							var objectInfo = utils.splitCommand(command.slice(17));
 							var objectId = utils.getObjectID(rp[msg.channel].objects, objectInfo[0]);
@@ -351,10 +351,10 @@ function treatMsg(msg) {
 							var oinfo = utils.splitCommand(command.slice(34).trim());
 							if (inv.give(msg, rp[msg.channel].chars[msg.author], player, oinfo[0], oinfo[1], commandParts[2]=="cgive")) {
 								if (commandParts[2] == "cgive") {
-									turn_amount += combat.action_time("give_cheat");
+									turn_amount += combat.action_time(msg, "give_cheat");
 								}
 								else {
-									turn_amount += combat.action_time("give");
+									turn_amount += combat.action_time(msg, "give");
 								}
 							}
 						}
@@ -374,7 +374,7 @@ function treatMsg(msg) {
 										actChar.holding = objectId;
 										actChar.inventory.splice(item, 1);
 										utils.replyMessage(msg, "Successfully equiped the item "+objectInfo[0]);
-										turn_amount += combat.action_time("hold");
+										turn_amount += combat.action_time(msg, "hold");
 										objectFound = true;
 										break;
 									}
@@ -745,7 +745,7 @@ function treatMsg(msg) {
 						}
 					}
 					else if (commandParts[2] == "turn") {
-						turn_amount += combat.action_time("turn");
+						turn_amount += combat.action_time(msg, "turn");
 						replyMessage(msg, say(msg, "admin_turn_success"));
 					}
 				}
