@@ -66,7 +66,7 @@
 					"title": "Available commands",
 					"description": "Those are all the commands I know, they all start with l!",
 					"fields": [
-						{"name": "help", "value": "Usage: `help [keyword]`"},
+						{"name": "help *[keyword]*", "value": "Display a help message"},
 						{"name": "rp", "value": "A fancy RPG game, see usage with `help rp`"}
 					]
 				},
@@ -74,9 +74,53 @@
 					"title": "Help: RPG",
 					"description": "A fancy RPG games, with combat, inventory and levels management. Features very customisable objects, mobs, classes and species",
 					"fields": [
-						{"name": "inv", "value": "Usage: `inv [give / hold]`"},
-						{"name": "room", "value": "Usage: `room [next]`"},
-						{"name": "admin", "value": "All the more advanced commandes used by the admins, see `help rp admin` for more informations"}
+						{"name": "char", "value": "Character management"},
+						{"name": "inv", "value": "Inventory management"},
+						{"name": "room", "value": "Usage: `room [next]`; display the room or move to the next room"},
+						{"name": "admin", "value": "All the more advanced commandes used by the admins, see `help rp admin` for more informations"},
+						{"name": "attack", "value": "Attack an enemy in the room you are in"}
+					]
+				},
+				"rp_char": {
+					"title": "Help: RPG `char`",
+					"description": "Character management",
+					"fields": [
+						{"name": "*empty*", "value": "Display your character"},
+						{"name": "create", "value": "Create a new character. **WARNING**: It will erase any other character you had in this channel!"},
+						{"name": "list", "value": "List all the characters there is in this channel"},
+						{"name": "class", "value": "Set your character's class"},
+						{"name": "specie", "value": "Set your character's specei. **WARNING**: It might reset your character's stats"}
+					]
+				},
+				"rp_inv": {
+					"title": "Help: RPG `inv`",
+					"description": "Inventory management",
+					"fields": [
+						{"name": "*empty*", "value": "Display your inventory"},
+						{"name": "desc *<item>*", "value": "Display one item's description"},
+						{"name": "give *<character>*", "value": "Give an item that you have in your inventory to another character"},
+						{"name": "cgive *<character>*", "value": "Give any item to another character. Use `self` instead of a character's name to give it to yourself"},
+						{"name": "hold *<item>*", "value": "Hold an item (the item that was holded goes back in your inventory)"}
+					]
+				},
+				"rp_room": {
+					"title": "Help: RPG `room`",
+					"description": "Room management",
+					"fields": [
+						{"name": "*empty*", "value": "Display the room"},
+						{"name": "next", "value": "Move to the next room if the room doesn't have any enemies left"}
+					]
+				},
+				"rp_admin": {
+					"title": "Help: RPG `admin`",
+					"description": "All the more advanced commands",
+					"fields": [
+						{"name": "settings", "value": "Set all the very advanced settings. **WIP**"},
+						{"name": "\\*\\*RESET\\*\\*", "value": "Reset this channel's RPG"},
+						{"name": "summon *<mob_name or mob_id>", "value": "Summon an enemy in the room"},
+						{"name": "kill *<mob_name or mob_id>", "value": "Kill an enemmy in the room"},
+						{"name": "presets", "value": "Preset management"},
+						{"name": "object, specie, class, mob", "value": "Manages the objects, species, classes and mobs. See `help admin custom` for help about this"}
 					]
 				}
 			},

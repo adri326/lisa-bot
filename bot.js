@@ -249,7 +249,7 @@ function treatMsg(msg) {
 		if (command.startsWith("help")) {
 
 			var query = command.slice(4).trim();
-			var data = config.lang[lang].help[query];
+			var data = config.lang[lang].help[query.replace(" ", "_")];
 			if (data == undefined) {
 				data = config.lang[lang].help["_"];
 			}
