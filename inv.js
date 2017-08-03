@@ -25,16 +25,21 @@ exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
       if (canGive) {
         rp[msg.channel].chars[player].inventory.push({id: objectId, quantity: quantity});
         utils.replyMessage(msg, "Successully gave item to " + rp[msg.channel].chars[player].name + "!");
+        return true;
       } else {
         if (quantity==1)
           utils.replyMessage(msg, say("error_item_not_in_possession"));
+          return false;
         else
           utils.replyMessage(msg, say("error_not_enough_item_in_possession"));
+          return false;
       }
     } else {
       utils.replyMessage(msg, "I couldn't find the object you were looking for!");
+      return false;
     }
   } else {
     utils.replyMessage(msg, "The player doesn't have an in-game character!");
+    return false;
   }
 }

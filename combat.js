@@ -26,3 +26,24 @@ exports.give_xp = function(msg, someone, amount, disp = false) {
 		utils.replyMessage(msg, someone.name + " got " + Math.round(amount) + " xp points. He/she has now: " + Math.round(someone.xp) + "/" + lxp + " lvl: " + someone.lvl);
 	}
 }
+
+exports.action_time = function(msg, action_name) { // Actions parser and calculator
+	if (utils.require(msg, reqs.has_char)) {
+		var action = config.actions_times[action_name];
+		if (action != undefined) {
+			if (typeof(action) === "object") {
+				var base = action.base || 1;
+				var speed = action.speed || base;
+				var speed_range = action.speed_range || 10;
+				var player_speed = rp[msg.channel].chars[msg.author].VIT;
+				return base - utils.sigma(player_speed/speed_range)*speed;
+			} else {
+				return +action;
+			}
+		}
+	}
+}
+
+exports.reset_turns = function(msg) {
+	
+}

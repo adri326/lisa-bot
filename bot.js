@@ -280,6 +280,11 @@ function treatMsg(msg) {
 			}
 			else {
 
+				var turn_amount;
+				if (rp[msg.channel].turn_type == 0) {
+					turn_amount = 0;
+				}
+
 				// NOTE: Character management
 				if (commandParts[1] == "char") {
 
@@ -330,6 +335,7 @@ function treatMsg(msg) {
 						}
 					}
 					else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
+						turn_amount += combat.action_time("give_cheat");
 						if (commandParts[3] == "self" && canCheat(msg)) {
 							var objectInfo = utils.splitCommand(command.slice(17));
 							var objectId = utils.getObjectID(rp[msg.channel].objects, objectInfo[0]);
@@ -340,9 +346,17 @@ function treatMsg(msg) {
 								utils.replyMessage(msg, "I couldn't find the object you were looking for!");
 							}
 						} else if (commandParts[3].startsWith("<@")) {
+
 							var player = commandParts[3].slice(2, commandParts[3].length - 1);
 							var oinfo = utils.splitCommand(command.slice(34).trim());
-							inv.give(msg, rp[msg.channel].chars[msg.author], player, oinfo[0], oinfo[1], commandParts[2]=="cgive");
+							if (inv.give(msg, rp[msg.channel].chars[msg.author], player, oinfo[0], oinfo[1], commandParts[2]=="cgive")) {
+								if (commandParts[2] == "cgive") {
+									turn_amount += combat.action_time("give_cheat");
+								}
+								else {
+									turn_amount += combat.action_time("give");
+								}
+							}
 						}
 					}
 					else if (commandParts[2] == "hold") {
@@ -360,6 +374,7 @@ function treatMsg(msg) {
 										actChar.holding = objectId;
 										actChar.inventory.splice(item, 1);
 										utils.replyMessage(msg, "Successfully equiped the item "+objectInfo[0]);
+										turn_amount += combat.action_time("hold");
 										objectFound = true;
 										break;
 									}
@@ -382,6 +397,7 @@ function treatMsg(msg) {
 								rp[msg.channel].room = createRoom(msg);
 								utils.replyMessage(msg, "Moved to the next room!");
 								io.displayRoom(msg);
+								combat.reset_turns(msg);
 							}
 							else {
 								utils.replyMessage(msg, "Not every mob has been killed!");
@@ -392,11 +408,13 @@ function treatMsg(msg) {
 						if (rp[msg.channel].room == undefined) {
 							rp[msg.channel].room = createRoom(msg);
 							io.displayRoom(msg);
+							combat.reset_turns(msg);
 						}
 					}
 				}
 				else if (commandParts[1] == "save") {
 					/* NOTE: Save the game */
+					// DEPRECATED
 
 					saveRP(msg.channel);
 					utils.replyMessage(msg, "*I'll try to remember your tale, young adventurer!*");
@@ -726,6 +744,10 @@ function treatMsg(msg) {
 							presets_mod.remove(msg, commandParts[4]);
 						}
 					}
+					else if (commandParts[2] == "turn") {
+						turn_amount += combat.action_time("turn");
+						replyMessage(msg, say(msg, "admin_turn_success"));
+					}
 				}
 				else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
 					if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room)) {
@@ -747,6 +769,7 @@ function treatMsg(msg) {
 							player.item = attrmgt.treat(rp[msg.channel].objects[player_raw.holding], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
 							player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0);
 							player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0);
+							player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0);
 							//console.log(CircularJSON.stringify(player));
 							var mob_impl = actRoom.entities[targetId];
 							var mob_raw = rp[msg.channel].mobs[mob_impl.id];
@@ -759,7 +782,11 @@ function treatMsg(msg) {
 							var MtPdmg = (mob.ATK) / (0.01 * player.DEF * player.DEF + 1);
 
 							mob_impl.HP -= PtMdmg;
-
+							if (player.VIT < 0) {
+								turn_amount += 1-player.VIT;
+							} else {
+								turn_amount += 1-utils.sigma(player.VIT);
+							}
 							if (mob_impl.HP <= 0) {
 								// Give the xp to the player
 								var xp_togive = mob_impl.difficulty * mob_raw.HP
@@ -781,7 +808,7 @@ function treatMsg(msg) {
 								utils.replyMessage(msg, "You hit " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.");
 
 
-
+								// TODO: remove that thing
 								player_raw.HP -= MtPdmg;
 
 								if (player_raw.HP <= 0) {

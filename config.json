@@ -126,7 +126,8 @@
 						{"name": "summon *<mob_name or mob_id>", "value": "Summon an enemy in the room"},
 						{"name": "kill *<mob_name or mob_id>", "value": "Kill an enemmy in the room"},
 						{"name": "presets", "value": "Preset management"},
-						{"name": "object, specie, class, mob", "value": "Manages the objects, species, classes and mobs. See `help admin assets` for help about this"}
+						{"name": "object, specie, class, mob", "value": "Manages the objects, species, classes and mobs. See `help admin assets` for help about this"},
+						{"name": "turn", "value": "Adds 1 to the turn amount"}
 					]
 				}
 			},
@@ -140,6 +141,7 @@
 			"char_ask_specie_success": "I see, you are a {{SPECIE}}",
 			"import_preset_success": "Successfully imported the preset `[[4]]`",
 			"remove_preset_success": "Successfully removed the preset `[[4]]`",
+			"admin_turn_success": "Successfully incremented the turn counter!",
 
 			"error_no_char": "I don't know you! First introduce you using `l!rp char create`",
 			"error_char_no_class": "You don't have any class? Assign yourself one using `l!rp char class`!",
@@ -166,5 +168,12 @@
 		"dungeon": 4619668,
 		"admin": 15987149,
 		"help": 15722699
+	},
+	"actions_times": {
+		"give": 2,
+		"give_cheat": 0,
+		"hold": {"base": 2, "speed": 1},
+		"eat": {"base": 4, "speed": 3.5, "speed_range": 20},
+		"turn": 1
 	}
 }

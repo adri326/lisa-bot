@@ -91,6 +91,9 @@ exports.splitCommand = function(str) {
 exports.random = function(a, b) {
 	return Math.random() * (b-a) + a;
 }
+exports.sigma = function(a) {
+	return a/(1+Math.abs(a));
+}
 
 exports.replyMessage = function(msg, content) {
 	// NOTE: Sends a message back
