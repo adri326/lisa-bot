@@ -1,0 +1,112 @@
+{
+  "id": "default",
+  "name": "Default",
+  "desc": "Default preset pack",
+
+  "mobs": [
+    {
+      "name": "Green goo",
+      "desc": "A translucent, jelly moving thing... yuck!",
+      "difficulty": 1,
+      "attrs": [
+        {"name": "xp_drop", "values": ["2", "8"]}
+      ],
+      "inv": [],
+      "holding": "",
+      "HP": [6, 10],
+      "ATK": 2,
+      "DEF": 1
+    },
+    {
+      "name": "Possessed dwarf",
+      "desc": "A dward, which has been possessed by the evil",
+      "difficulty": 2,
+      "attrs": [
+        {"name": "xp_drop", "values": ["15", "25"]}
+      ],
+      "inv": [],
+      "holding": "Iron hammer",
+      "HP": [14, 20],
+      "ATK": 4,
+      "DEF": 3,
+      "VIT": 2
+    },
+    {
+      "name": "Possessed armor",
+      "desc": "An armor, which moves thanks black magic. Does it has a soul? Maybe not...",
+      "difficulty": 1,
+      "attrs": [
+        {"name": "xp_drop", "values": ["6", "8"]}
+      ],
+      "inv": [],
+      "holding": "",
+      "HP": [8, 12],
+      "ATK": 3,
+      "DEF": 1
+    }
+  ],
+  "objects": [
+    {
+      "name": "Wooden hammer",
+      "desc": "A hammer made out of wood. It is a rather slow and innacurate weapon",
+      "class": "hammer",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "2", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-1", "int"]}
+      ]
+    },
+    {
+      "name": "Iron hammer",
+      "desc": "A hammer made out of iron. It is a rather slow and innacurate weapon",
+      "class": "hammer",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "4", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-2", "int"]}
+      ]
+    },
+    {
+      "name": "Magically reinforced Iron hammer",
+      "desc": "A hammer made out of iron. You can feel the magic flowing in it.",
+      "class": "hammer",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "6", "int"]},
+        {"name": "base_stat", "values": ["DEF", "1", "int"]},
+        {"name": "base_stat", "values": ["MGC", "3", "int"]}
+      ]
+    },
+    {
+      "name": "Wooden sword",
+      "desc": "A sword made out of wood. It is an average weapon",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "2", "int"]}
+      ]
+    },
+    {
+      "name": "Iron sword",
+      "desc": "A sword made out of iron. It is an average weapon",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "4", "int"]},
+        {"name": "base_stat", "values": ["DEF", "1", "int"]}
+      ]
+    },
+    {
+      "name": "Magically reinforced Iron sword",
+      "desc": "A sword made out of iron. Magic flows into small metal veins on the skin of the blade, slightly glowing in the dark...",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "6", "int"]},
+        {"name": "base_stat", "values": ["DEF", "3", "int"]},
+        {"name": "base_stat", "values": ["MGC", "3", "int"]},
+        {"name": "base_stat", "values": ["VIT", "2", "int"]}
+      ]
+    }
+  ]
+}
