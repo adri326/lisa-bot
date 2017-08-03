@@ -43,7 +43,8 @@ const combat = require("./combat");
 const presets_mod = require("./presets");
 
 var onStartupTime = new Date().getTime();
-var onLoginTime, onLoadedTime, problems = 0;
+var onLoginTime, onLoadedTime;
+problems = 0;
 
 console.log("Initialising variables");
 
@@ -77,10 +78,7 @@ RP = {
 		this.classes = [config.defaults.class];
 		this.species = [config.defaults.specie];
 		this.objects = [config.defaults.object];
-		this.adventure_mode = config.defaults.adventure_mode;
-		this.admins = [creator.id];
-		this.user_rights_level = config.defaults.user_rights_level;
-		this.difficulty = config.defaults.difficulty;
+		Object.assign(this, config.printableSettings); // Include all the printableSettings set in config.json
 		return this;
 	},
 	set_char: function(rp, id, name) {
@@ -173,8 +171,9 @@ function createRoom(msg) {
 
 function canCheat(msg) {
 	if (rp[msg.channel].admins != undefined && rp[msg.channel].user_right_level != undefined)
-	return rp[msg.channel].admins.indexOf(msg.author)>-1 || rp[msg.channel].user_rights_level >= 2;
-	else return true;
+		return rp[msg.channel].admins.indexOf(msg.author) > -1 || rp[msg.channel].user_rights_level >= 2;
+	else
+		return true;
 }
 
 function saveRP(id) {
@@ -406,9 +405,9 @@ function treatMsg(msg) {
 				else if (commandParts[1] == "admin" && canCheat(msg)) {
 
 					if (commandParts[2] == "settings") {
-						if (msg.content.length>19) {
+						if (commandParts[3] != undefined && commandParts[4] != undefined) {
 
-							var setting = msg.content.slice(20, msg.content.length).split("=");
+							var setting = [commandParts[3], commandParts[4]];
 
 							if (rp[msg.channel][setting[0]] !== null || printableSettings.indexOf(setting[0]) >= 0) {
 								if (setting[1]=="true") {
@@ -438,7 +437,7 @@ function treatMsg(msg) {
 
 							var string = "";
 							for (i in config.printableSettings) {
-								string = string + "\r\n" + config.printableSettings[i] + ": " + rp[msg.channel][config.printableSettings[i]];
+								string = string + "\r\n" + i + ": " + rp[msg.channel][i];
 							}
 							utils.replyMessage(msg, "```" + string + "```");
 

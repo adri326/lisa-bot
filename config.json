@@ -3,7 +3,13 @@
 	"rpdir": "RP",
 	"presetsdir": "presets",
 	"itemsPerPage": 3,
-	"printableSettings": ["adventure_mode", "admins", "user_rights_level", "difficulty"],
+	"printableSettings": {
+		"adventure_mode": "auto",
+		"admins": "-1",
+		"user_rights_level": 2,
+		"difficulty": 1,
+		"turn_type": 0
+	},
 	"defaults": {
 		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
 		"specie": {"name": "Human", "desc": "This specie is the basic specie, it hasn't any special attributes"},
@@ -120,7 +126,7 @@
 						{"name": "summon *<mob_name or mob_id>", "value": "Summon an enemy in the room"},
 						{"name": "kill *<mob_name or mob_id>", "value": "Kill an enemmy in the room"},
 						{"name": "presets", "value": "Preset management"},
-						{"name": "object, specie, class, mob", "value": "Manages the objects, species, classes and mobs. See `help admin custom` for help about this"}
+						{"name": "object, specie, class, mob", "value": "Manages the objects, species, classes and mobs. See `help admin assets` for help about this"}
 					]
 				}
 			},

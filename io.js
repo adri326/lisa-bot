@@ -306,15 +306,19 @@ exports.loadRP = function() {
 							problems++;
 						}
 					}
-					if (chan.mobs === undefined) {
-						chan.mobs = [config.defaults.mob];
-						console.log(items[i] + ": mobs");
-						problems++;
+					for (item in config.settingsList) {
+						if (chan[config.settingsList[item]] === undefined) {
+							chan[config.settingsList[item]] = [config.defaults[item]];
+							console.log(items[i] + ": assets." + config.settingList[item]);
+							problems++;
+						}
 					}
-					if (chan.difficulty === undefined) {
-						chan.difficulty = config.defaults.difficulty;
-						console.log(items[i] + ": difficulty");
-						problems++;
+					for (item in config.printableSettings) {
+						if (chan[item] === undefined) {
+							chan[item] = config.printableSettings[item];
+							console.log(items[i] + ": settings." + item);
+							problems++;
+						}
 					}
 					rp[chan.id] = chan;
 
