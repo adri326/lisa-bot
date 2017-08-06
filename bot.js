@@ -41,6 +41,7 @@ const io = require("./io");
 const specie = require("./specie");
 const combat = require("./combat");
 const presets_mod = require("./presets");
+const spells = require("./spells");
 
 var onStartupTime = new Date().getTime();
 var onLoginTime, onLoadedTime;
@@ -70,35 +71,6 @@ talking = [{
 rp = [];
 presets = [];
 
-RP = {
-	new: function(id, creator) {
-		this.creator = creator.id;
-		this.id = id;
-		this.chars = {};
-		this.classes = [config.defaults.class];
-		this.species = [config.defaults.specie];
-		this.objects = [config.defaults.object];
-		Object.assign(this, config.printableSettings); // Include all the printableSettings set in config.json
-		return this;
-	},
-	set_char: function(rp, id, name) {
-		rp.chars[id] = {
-			name: name,
-			classId: -1,
-			specieId: -1,
-			inventory: [],
-			xp: 0,
-			lvl: 1
-		};
-		rp.chars[id].ATK = config.defaults.ATK;
-		rp.chars[id].DEF = config.defaults.DEF;
-		rp.chars[id].VIT = config.defaults.VIT;
-		rp.chars[id].MGC = config.defaults.MGC;
-		rp.chars[id].AGI = config.defaults.AGI;
-		rp.chars[id].STR = config.defaults.STR;
-		rp.chars[id].HP = config.defaults.HP;
-	}
-};
 
 Level = {
 	new: function(width, height, depth, stairsNumber, specialsNumber) {
@@ -123,48 +95,13 @@ Level = {
 	}
 }
 
-
-
-
-
-
-
 function initRP(channel, creator) {
 	channel.send(config.lang[lang].init_alert);
-	rp[channel.id] = RP.new(channel.id, creator);
+	rp[channel.id] = utils.createRP(channel.id, creator);
 	channel.send(config.lang[lang].init_success);
 }
 
-function createRoom(msg) {
-	var difficulty = rp[msg.channel].difficulty;
-	var room = {
-		entities: [],
-		items: []
-	};
-	var mobCount = utils.random(Math.sqrt(difficulty), difficulty);
-	for (i = 0; i < mobCount; i++) {
-		var found = false;
-		for (j = 0; j < 5 && !found; j++) {
-			var n = Math.floor(Math.random() * rp[msg.channel].mobs.length);
-			var mob = rp[msg.channel].mobs[n];
-			if (mob.difficulty <= difficulty) {
-				var HP = 0;
-				if (Array.isArray(rp[msg.channel].mobs[n].HP)) {
-					if (rp[msg.channel].mobs[n].HP.length == 2)
-						HP = utils.random(rp[msg.channel].mobs[n].HP[0], rp[msg.channel].mobs[n].HP[1]);
-					else {
-						HP = rp[msg.channel].mobs[n].HP[0];
-					}
-				} else {
-					HP = rp[msg.channel].mobs[n].HP;
-				}
-				room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, holding: utils.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
-				found = true;
-			}
-		}
-	}
-	return room;
-}
+
 
 
 
@@ -205,7 +142,7 @@ bot.on("ready", () => {
 bot.on("message", msg => {
 	try {
 		var message_split = msg.content.split("\n");
-		for (msg_index in message_split) {
+		for (msg_index ! 0; msg_index < Math.min(config.maxBranchedCmds, message_split.length); msg_index++) { // Loop for every new-line (maximum is config.maxBranchedCmds times)
 			const msg_t = {
 				content: message_split[msg_index],
 				author: msg.author.id,
@@ -394,7 +331,7 @@ function treatMsg(msg) {
 					else if (commandParts[2] == "next") {
 						if (utils.require(msg, reqs.is_room | reqs.are_mobs)) {
 							if (rp[msg.channel].room.entities.length == 0) {
-								rp[msg.channel].room = createRoom(msg);
+								rp[msg.channel].room = utils.utils.createRoom(msg);
 								utils.replyMessage(msg, "Moved to the next room!");
 								io.displayRoom(msg);
 								combat.reset_turns(msg);
@@ -406,7 +343,7 @@ function treatMsg(msg) {
 					}
 					else if (commandParts[2] == "init") {
 						if (rp[msg.channel].room == undefined) {
-							rp[msg.channel].room = createRoom(msg);
+							rp[msg.channel].room = utils.createRoom(msg);
 							io.displayRoom(msg);
 							combat.reset_turns(msg);
 						}
@@ -482,7 +419,7 @@ function treatMsg(msg) {
 						var string = "";
 
 						//rp[msg.channel].mobs = [config.defaults.mob];
-						rp[msg.channel].room = createRoom(msg);
+						rp[msg.channel].room = utils.createRoom(msg);
 
 						/*rp[msg.channel].dungeon = [Level.new(4, 4, 0, 2, 1)];
 						rp[msg.channel].position

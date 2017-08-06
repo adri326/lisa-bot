@@ -29,6 +29,20 @@
 			"ATK": 1,
 			"DEF": 0,
 			"source": "D"},
+		"spell": {
+			"name": "Inferno",
+			"desc": "Puts enemies in fire",
+			"matches": [
+				{
+					"when": "^(Inferno) \"?([a-z ]*)\"?",
+					"action": ["select_every_enemy", "select_match_input(2)", "give_effect(fire)"]
+				},
+				{
+					"when": "^(Inferno)$",
+					"action": ["select_every_enemy", "select_one_random", "give_effect(fire)"]
+				}
+			]
+		},
 		"adventure_mode": "auto",
 		"user_rights_level": 2,
 		"ATK": 4,
@@ -44,7 +58,8 @@
 		"class": "classes",
 		"specie": "species",
 		"object": "objects",
-		"mob": "mobs"
+		"mob": "mobs",
+		"spell": "spells"
 	},
 	"baseStats": [
 		"ATK",

@@ -61,7 +61,7 @@ exports.askChar = function(msg) {
   if (utils.require(msg, reqs.has_char | reqs.are_classes | reqs.are_species)) {
   	utils.replyMessage(msg, module.exports.say(msg, "char_init"));
   	module.exports.say(msg, function(msg) {
-  		RP.set_char(rp[msg.channel], msg.author, msg.content);
+  		rp[msg.channel].chars[msg.author] = utils.createChar(msg.author, msg.content);
   		utils.replyMessage(msg, module.exports.say(msg, "char_init_success"));
   		askClass(msg);
   	});
@@ -306,9 +306,9 @@ exports.loadRP = function() {
 							problems++;
 						}
 					}
-					for (item in config.settingsList) {
-						if (chan[config.settingsList[item]] === undefined) {
-							chan[config.settingsList[item]] = [config.defaults[item]];
+					for (item in config.settingList) {
+						if (chan[config.settingList[item]] === undefined) {
+							chan[config.settingList[item]] = [config.defaults[item]];
 							console.log(items[i] + ": assets." + config.settingList[item]);
 							problems++;
 						}

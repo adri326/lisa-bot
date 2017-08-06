@@ -96,11 +96,13 @@ exports.sigma = function(a) {
 }
 
 exports.replyMessage = function(msg, content) {
-	// NOTE: Sends a message back
-	var guild = bot.guilds.get(msg.guild);// || bot.guilds.get(msg.guild.id);
-	if (guild!=undefined)
-		guild.channels.get(msg.channel).send(content);
-	//msg.channel.send(content);
+	if (config._no_message !== true) {
+		// NOTE: Sends a message back
+		var guild = bot.guilds.get(msg.guild);// || bot.guilds.get(msg.guild.id);
+		if (guild!=undefined)
+			guild.channels.get(msg.channel).send(content);
+		//msg.channel.send(content);
+	}
 }
 
 exports.logMessage = function(msg) {
@@ -122,4 +124,66 @@ exports.getObjectID = function(obj_list, name) {
 		}
 	}
 	return foundId;
+}
+
+exports.createRP = function(msg) {
+	var newRP = {};
+	newRP.creator = msg.author;
+	newRP.id = msg.channel;
+	newRP.chars = {};
+	for (item in config.settingList) {
+		newRP[config.settingList[item]] = [config.defaults[item]];
+	}
+	Object.assign(newRP, config.printableSettings); // Include all the printableSettings set in config.json
+	return newRP;
+}
+
+exports.createChar = function(id, name) {
+	char = {
+		name: name,
+		classId: -1,
+		specieId: -1,
+		inventory: [],
+		xp: 0,
+		lvl: 1
+	};
+	char.ATK = config.defaults.ATK;
+	char.DEF = config.defaults.DEF;
+	char.VIT = config.defaults.VIT;
+	char.MGC = config.defaults.MGC;
+	char.AGI = config.defaults.AGI;
+	char.STR = config.defaults.STR;
+	char.HP = config.defaults.HP;
+	return char;
+}
+
+exports.createRoom = function(msg) {
+	var difficulty = rp[msg.channel].difficulty;
+	var room = {
+		entities: [],
+		items: []
+	};
+	var mobCount = utils.random(Math.sqrt(difficulty), difficulty);
+	for (i = 0; i < mobCount; i++) {
+		var found = false;
+		for (j = 0; j < 5 && !found; j++) {
+			var n = Math.floor(Math.random() * rp[msg.channel].mobs.length);
+			var mob = rp[msg.channel].mobs[n];
+			if (mob.difficulty <= difficulty) {
+				var HP = 0;
+				if (Array.isArray(rp[msg.channel].mobs[n].HP)) {
+					if (rp[msg.channel].mobs[n].HP.length == 2)
+						HP = utils.random(rp[msg.channel].mobs[n].HP[0], rp[msg.channel].mobs[n].HP[1]);
+					else {
+						HP = rp[msg.channel].mobs[n].HP[0];
+					}
+				} else {
+					HP = rp[msg.channel].mobs[n].HP;
+				}
+				room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, holding: utils.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
+				found = true;
+			}
+		}
+	}
+	return room;
 }
