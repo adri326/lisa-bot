@@ -95,10 +95,10 @@ Level = {
 	}
 }
 
-function initRP(channel, creator) {
-	channel.send(config.lang[lang].init_alert);
-	rp[channel.id] = utils.createRP(channel.id, creator);
-	channel.send(config.lang[lang].init_success);
+function initRP(msg) {
+	utils.replyMessage(msg, io.say("init_alert"));
+	rp[msg.channel] = utils.createRP(msg.channel);
+	utils.replyMessage(msg, io.say("init_success"));
 }
 
 
@@ -137,12 +137,16 @@ bot.on("ready", () => {
 			saveRP(i);
 		}
 	}, 30000);
+	if (typeof on_bot_ready !== "undefined") {
+		on_bot_ready();
+	}
 });
 
 bot.on("message", msg => {
+	//console.log(msg.content);
 	try {
-		var message_split = msg.content.split("\n");
-		for (msg_index ! 0; msg_index < Math.min(config.maxBranchedCmds, message_split.length); msg_index++) { // Loop for every new-line (maximum is config.maxBranchedCmds times)
+		var message_split = msg.content.split("\n") || msg.content;
+		for (msg_index = 0; msg_index < Math.min(config.maxBranchedCmds, message_split.length); msg_index++) { // Loop for every new-line (maximum is config.maxBranchedCmds times)
 			const msg_t = {
 				content: message_split[msg_index],
 				author: msg.author.id,
@@ -206,15 +210,15 @@ function treatMsg(msg) {
 
 		if (command.startsWith("RP") || command == "RP" || command.startsWith("rp") || command == "rp") {
 
-			if (rp[msg.channel] == null || rp[msg.channel] == undefined) {
+			if (rp[msg.channel] === null || rp[msg.channel] == undefined) {
 				// NOTE: Init RP if not done
-				initRP(msg.channel, msg.author);
+				initRP(msg);
 
 			}
-			else if (rp[msg.channel].id != msg.channel) {
+			/*else if (rp[msg.channel].id != msg.channel) {
 				utils.replyMessage(msg, "There was an error in the configuration!");
-				initRP(msg.channel, msg.author);
-			}
+				initRP(msg);
+			}*/
 			else {
 
 				var turn_amount;
@@ -716,7 +720,9 @@ function treatMsg(msg) {
 						}
 					}
 				}
-				if (rp[msg.channel].turn_type == 0) {
+				if (rp[msg.channel] != undefined)
+				if (rp[msg.channel].room != undefined)
+				if (rp[msg.channel].turn_type == 0 && rp[msg.channel].room.entities.length != 0) {
 					if (turn_amount > 0) {
 						if (turn_amount > 1) {
 							for (; turn_amount > 1; turn_amount--) { // Loop back into turn_amount until it reaches a value below 1
@@ -739,42 +745,38 @@ function treatMsg(msg) {
 
 console.log("Reading config.json ...");
 
-fs.readFile("./config.json", (err, data) => {
-	// Read data.json
+data = fs.readFileSync("./config.json");
+// Read data.json
+if (data === null) {
+	console.log("Error while reading the config.json file, be sure to have it with the right name and with the right permissions!");
+}
+console.log("Successfully read config.json, parsing its data ...");
+// Success; Parse data.json
+config = JSON.parse(data.toString());
+console.log("Successfully parsed config data, loading the saves ...");
+
+
+
+io.loadRP();
+console.log("Loaded the saves, loading presets");
+
+presets_mod.loadPresets();
+console.log("Loaded the presets, loading the token");
+
+onLoadedTime = new Date().getTime();
+
+
+data = fs.readFile("./token.txt", (err, data) => {
 	if (err) {
-		console.log("Error while reading the config.json file, be sure to have it with the right name and with the right permissions!");
+		console.log("Error while loading the token, be sure that you have it in plain text in the file token.txt!");
 		throw err;
 	}
-	console.log("Successfully read config.json, parsing its data ...");
-	// Success; Parse data.json
-	config = JSON.parse(data.toString());
-	console.log("Successfully parsed config data, loading the token ...");
-
-	fs.readFile("./token.txt", (err, data) => {
-		if (err) {
-			console.log("Error while loading the token, be sure that you have it in plain text in the file token.txt!");
-			throw err;
-		}
-
-		console.log("Successfully loaded the token, loading the saves...");
-
-		io.loadRP();
-
-		console.log("Loaded the saves, loading presets");
-
-		presets_mod.loadPresets();
-
-		console.log("Loaded the presets, attempting to log in...");
-
-		onLoadedTime = new Date().getTime();
-
-		token = data.toString().trim();
-
-		bot.login(token);
-	});
-
-
+	console.log("Successfully loaded the token, logging in...");
+	token = data.toString().trim();
+	bot.login(token);
+	console.log(token);
 });
+
 function exitHandler(options, err) {
 	if (options.exception === undefined) {
 		if (options.exit === undefined) {
@@ -799,3 +801,17 @@ function exitHandler(options, err) {
 process.on("exit", exitHandler.bind(null, {exit: true}));
 process.on("SIGINT", exitHandler.bind(null, {}));
 process.on("uncaughtException", exitHandler.bind(null, {exception: true}));
+
+// Ability to debug the code
+exports.trigger_msg = function(msg_base, content) {
+	var message_split = content.split("\n");
+	const msg_t = {
+		content: content,
+		author: msg_base.author,
+		author_username: msg_base.author_username,
+		author_discriminator: msg_base.author_discriminator,
+		channel: msg_base.channel,
+		guild: msg_base.guild
+	};
+	treatMsg(msg_t);
+}

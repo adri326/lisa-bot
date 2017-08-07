@@ -58,12 +58,13 @@ exports.getTalking = function(msg) {
 
 // NOTE: YELLOW deprecated alert!
 exports.askChar = function(msg) {
-  if (utils.require(msg, reqs.has_char | reqs.are_classes | reqs.are_species)) {
+
+  if (utils.require(msg, reqs.are_classes | reqs.are_species)) {
   	utils.replyMessage(msg, module.exports.say(msg, "char_init"));
-  	module.exports.say(msg, function(msg) {
+  	module.exports.talk(msg, function(msg) {
   		rp[msg.channel].chars[msg.author] = utils.createChar(msg.author, msg.content);
   		utils.replyMessage(msg, module.exports.say(msg, "char_init_success"));
-  		askClass(msg);
+  		module.exports.askClass(msg);
   	});
   }
 };

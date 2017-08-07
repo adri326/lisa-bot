@@ -3,6 +3,7 @@
 	"rpdir": "RP",
 	"presetsdir": "presets",
 	"itemsPerPage": 3,
+	"maxBranchedCmds": 5,
 	"printableSettings": {
 		"adventure_mode": "auto",
 		"admins": "-1",

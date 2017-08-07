@@ -106,7 +106,9 @@ exports.replyMessage = function(msg, content) {
 }
 
 exports.logMessage = function(msg) {
-	console.log(msg.author_username + ":" + msg.author_discriminator + " => " + msg.content); // Log message content
+	if (config._no_log !== true) {
+		console.log(msg.author_username + ":" + msg.author_discriminator + " => " + msg.content); // Log message content
+	}
 }
 
 exports.getObjectID = function(obj_list, name) {
@@ -127,6 +129,7 @@ exports.getObjectID = function(obj_list, name) {
 }
 
 exports.createRP = function(msg) {
+
 	var newRP = {};
 	newRP.creator = msg.author;
 	newRP.id = msg.channel;
@@ -163,7 +166,7 @@ exports.createRoom = function(msg) {
 		entities: [],
 		items: []
 	};
-	var mobCount = utils.random(Math.sqrt(difficulty), difficulty);
+	var mobCount = module.exports.random(Math.sqrt(difficulty), difficulty);
 	for (i = 0; i < mobCount; i++) {
 		var found = false;
 		for (j = 0; j < 5 && !found; j++) {
@@ -180,7 +183,7 @@ exports.createRoom = function(msg) {
 				} else {
 					HP = rp[msg.channel].mobs[n].HP;
 				}
-				room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, holding: utils.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
+				room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, holding: module.exports.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
 				found = true;
 			}
 		}
