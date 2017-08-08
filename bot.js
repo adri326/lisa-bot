@@ -145,6 +145,7 @@ bot.on("ready", () => {
 bot.on("message", msg => {
 	//console.log(msg.content);
 	try {
+		var start = new Date().getTime();
 		var message_split = msg.content.split("\n") || msg.content;
 		for (msg_index = 0; msg_index < Math.min(config.maxBranchedCmds, message_split.length); msg_index++) { // Loop for every new-line (maximum is config.maxBranchedCmds times)
 			const msg_t = {
@@ -157,14 +158,17 @@ bot.on("message", msg => {
 			};
 			treatMsg(msg_t);
 		}
+		var end = new Date().getTime();
+		if (msg.content.startsWith("l!"))
+			console.log(" " + (end-start) + "ms");
 	}
 	catch (err) {
 		utils.replyMessage(msg, {embed: {
 			color: 0x85171e,
-			title: err.name,
+			title: err.constructor.toString(),
 			description: err.message
 		}});
-		console.log(err);
+		console.error(err);
 	}
 });
 function treatMsg(msg) {
@@ -176,6 +180,13 @@ function treatMsg(msg) {
 				talking[msg.channel].trigger(msg);
 			}
 		}
+	}
+
+	if (msg.content == "<@318041916094677002>" && msg.author == "238841636581277698") {
+		utils.replyMessage(msg, "Yes, *my god* ?");
+	}
+	else if (msg.content == "<@318041916094677002>") {
+		utils.replyMessage(msg, "Print `l!help` for more help!");
 	}
 
 	if (msg.content.startsWith("l!")) {
@@ -204,6 +215,14 @@ function treatMsg(msg) {
 						presets_mod.loadPresets();
 						utils.replyMessage(msg, "Reloaded presets!");
 					}
+					else if (commandParts[2] == "config") {
+						console.log("Reloading config...");
+						data = fs.readFileSync("./config.json");
+						if (data !== null) {
+							config = CircularJSON.parse(data.toString());
+							utils.replyMessage(msg, "Reloaded config! Warning, changes may not apply!");
+						}
+					}
 				}
 			}
 		}
@@ -220,7 +239,11 @@ function treatMsg(msg) {
 				initRP(msg);
 			}*/
 			else {
-
+				var turns_embed = {
+					color: config.colors.dungeon,
+					fields: []
+				};
+				var players_turn = "";
 				var turn_amount;
 				if (rp[msg.channel].turn_type == 0) {
 					turn_amount = 0;
@@ -695,6 +718,38 @@ function treatMsg(msg) {
 							utils.replyMessage(msg, io.say(msg, "admin_reinit_success"));
 						}
 					}
+					else if (commandParts[2] == "HP" || commandParts[2] == "MP") {
+						Object.keys(rp[msg.channel].chars).filter(
+							p => rp[msg.channel].chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(rp[msg.channel].chars[p].name))
+						).forEach(
+							p => rp[msg.channel].chars[p][commandParts[2]] += +commandParts[4]
+						);
+					}
+					else if (commandParts[2] == "levelup") {
+						var embed = {
+							color: config.colors.admin,
+							fields: []
+						};
+
+						Object.keys(rp[msg.channel].chars).filter(
+							p => rp[msg.channel].chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(rp[msg.channel].chars[p].name))
+						).forEach(
+							p => {
+								var text = "";
+								actChar = rp[msg.channel].chars[p];
+								actChar.xp = 0;
+								actChar.lvl++;
+								var lxp = actChar.lvl * actChar.lvl * 100;
+								text += "\r\n" + io.say(msg, "player_level_up", {name: actChar.name, level: actChar.lvl, xp: actChar.xp, maxxp: lxp});
+								var sub = combat.level_up_awards(msg, actChar);
+								if (sub != null) {
+									text += "\r\n" + sub;
+								}
+								embed.fields.push({name: actChar.name, value: text});
+							}
+						);
+						utils.replyMessage(msg, {embed: embed});
+					}
 				}
 				else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
 					if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room)) {
@@ -720,7 +775,10 @@ function treatMsg(msg) {
 							} else {
 								turn_amount += 1-utils.sigma(player.VIT/combat.action_time(msg, "attack"));
 							}
-							combat.combat(msg, msg.author, targetId, false, true);
+							var text = combat.combat(msg, msg.author, targetId, false, true);
+							if (text != "") {
+								players_turn += "\r\n" + text;
+							}
 						} else {
 							utils.replyMessage(msg, io.say(msg, "error_mob_name_syntax"));
 						}
@@ -734,124 +792,148 @@ function treatMsg(msg) {
 					var spell = spells.findSpell(msg, spellRaw);
 					if (spell !== null) {
 						utils.replyMessage(msg, io.say(msg, "casting_spell", {"spell": spell.name}));
-						spells.executeSpell(msg, spell);
+						var text = spells.executeSpell(msg, spell);
+						if (text != "" && text != undefined && text !== null) {
+							players_turn += "\r\n" + text;
+						}
 					} else {
 						utils.replyMessage(msg, io.say(msg, "error_spell_not_found"));
 					}
 				}
 
+				if (players_turn != "" && players_turn != undefined && players_turn !== null) {
+					turns_embed.fields.push({name: "Player's turn", value: players_turn});
+				}
 
 				if (rp[msg.channel] != undefined)
 				if (rp[msg.channel].turn_type == 0) {
 					if (turn_amount > 0) {
-						if (turn_amount > 1) {
-							var embed = {
-								color: config.colors.dungeon,
-								fields: []
-							};
-							for (turn_count = 1; turn_amount >= 1; turn_amount--, turn_count++) { // Loop back into turn_amount until it reaches a value below 1
-								var mob_text = "", players_text = "", combat_text = "";
-								if (utils.require(msg, reqs.is_room | reqs.are_mobs_in_room | reqs.are_mobs, false)) {
+						var turn_count = 0;
 
-									var targetId = Math.floor(utils.random(0, rp[msg.channel].room.entities.length));
+						for (turn_count = 1; turn_amount >= 1 || utils.random(0, 1) < turn_amount && turn_amount > 0; turn_amount--, turn_count++) { // Loop back into turn_amount until it reaches a value below 1
+							var mob_text = "", players_text = "", combat_text = "";
+							if (utils.require(msg, reqs.is_room | reqs.are_mobs_in_room | reqs.are_mobs, false)) {
+
+								var targetId = Math.floor(utils.random(0, rp[msg.channel].room.entities.length));
+								if (utils.getObjectID(rp[msg.channel].room.entities[targetId].effects, "suspend") == -1) {
 									combat_text += "\r\n" + combat.mob_action(msg, targetId);
+								} else {
+									combat_text += "\r\n" + io.say(msg, "mob_suspended", {name: rp[msg.channel].mobs[rp[msg.channel].room.entities[targetId].id].name});
+								}
 
-									for (mob in rp[msg.channel].room.entities) {
-										var actMob = rp[msg.channel].room.entities[mob];
-										var actMobParent = rp[msg.channel].mobs[actMob.id];
-										for (effect in actMob.effects) {
-											var actEffect = actMob.effects[effect];
-											switch (actEffect.name) {
-												case "fire":
-													actMob.HP -= config.fire_damage;
-													mob_text += "\r\n" + io.say(msg, "mob_damage_fire", {name: actMobParent.name, damage: config.fire_damage});
-													break;
-											}
+								for (mob = 0; mob < rp[msg.channel].room.entities.length; mob++) {
+									var actMob = rp[msg.channel].room.entities[mob];
+									var actMobParent = rp[msg.channel].mobs[actMob.id];
+									for (effect = 0; effect < actMob.effects.length; effect++) {
+										var actEffect = actMob.effects[effect];
+										switch (actEffect.name) {
+											case "fire":
+												actMob.HP -= config.fire_damage;
+												mob_text += "\r\n" + io.say(msg, "mob_damage_fire", {name: actMobParent.name, damage: config.fire_damage});
+												break;
+										}
+										actEffect.length -= 1;
+										if (isNaN(actEffect.length) || actEffect.length == null || actEffect.length <= 0) {
+											actMob.effects.splice(effect, 1);
+											effect--;
 										}
 									}
-
-								}
-
-								for (player in rp[msg.channel].chars) {
-
-									var actChar = rp[msg.channel].chars[player];
-									if (actChar.MP < config.maxMP) {
-										actChar.MP += config.MP_recovery;
-										players_text += "\r\n" + io.say(msg, "player_heal_HP", {name: actChar.name, amount: config.HP_recovery, now: Math.round(actChar.HP*10)/10});
+									if (actMob.HP <= 0) {
+										mob_text += "\r\n" + io.say(msg, "mob_died", {name: actMobParent.name});
+										rp[msg.channel].room.entities.splice(mob, 1);
 									}
-									if (actChar.HP < config.maxHP) {
-										actChar.HP += config.HP_recovery;
-										players_text += "\r\n" + io.say(msg, "player_heal_MP", {name: actChar.name, amount: config.MP_recovery, now: Math.round(actChar.MP*10)/10});
-									}
-								}
-
-								var text = "";
-
-								if (rp[msg.channel].display_combat_text && combat_text != "") {
-									text += combat_text;
-								}
-								if (rp[msg.channel].display_passive_damages && mob_text != "") {
-									text += mob_text;
-								}
-								if (rp[msg.channel].display_players_heal && players_text != "") {
-									text += players_text;
-								}
-
-								if (text != "") {
-									embed.fields.push({name: "Turn " + turn_count, value: text});
 								}
 
 							}
+
+							for (player in rp[msg.channel].chars) {
+
+								var actChar = rp[msg.channel].chars[player];
+								if (actChar.MP < config.maxMP) {
+									actChar.MP += config.MP_recovery;
+									players_text += "\r\n" + io.say(msg, "player_heal_MP", {name: actChar.name, amount: config.MP_recovery, now: Math.round(actChar.MP*10)/10});
+								}
+								if (actChar.HP < config.maxHP) {
+									actChar.HP += config.HP_recovery;
+									players_text += "\r\n" + io.say(msg, "player_heal_HP", {name: actChar.name, amount: config.HP_recovery, now: Math.round(actChar.HP*10)/10});
+								}
+							}
+
+							var text = "";
+
+							if (rp[msg.channel].display_combat_text && combat_text != "") {
+								text += combat_text;
+							}
+							if (rp[msg.channel].display_passive_damages && mob_text != "") {
+								text += mob_text;
+							}
+							if (rp[msg.channel].display_players_heal && players_text != "") {
+								text += players_text;
+							}
+
+							if (text != "") {
+								turns_embed.fields.push({name: "Turn " + turn_count, value: text});
+							}
+
 						}
-						if (turn_amount > 0) {
+						/*if (turn_amount > 0) {
+							turn_count++;
 							if (utils.random(0, 1)>turn_amount) {
 								var targetId = Math.floor(utils.random(0, actRoom.entities.length));
-								combat.mob_action(msg, targetId);
+								turns_embed.fields.push({name: "Turn " + turn_count, value: combat.mob_action(msg, targetId)});
 							}
-						}
-
-						utils.replyMessage(msg, {embed: embed});
+						}*/
 					}
+				}
+				if (turns_embed.fields.length != 0) {
+					utils.replyMessage(msg, {embed: turns_embed});
+				}
+				else if (rp[msg.channel].display_noop) {
+					utils.replyMessage(msg, {embed: {
+						title: "Nothing happenned",
+						color: config.colors.dungeon
+					}})
 				}
 			}
 		}
 	}
 }
 
-console.log("Reading config.json ...");
+var initLoading = function () {
+	console.log("Reading config.json ...");
 
-data = fs.readFileSync("./config.json");
-// Read data.json
-if (data === null) {
-	console.log("Error while reading the config.json file, be sure to have it with the right name and with the right permissions!");
-}
-console.log("Successfully read config.json, parsing its data ...");
-// Success; Parse data.json
-config = JSON.parse(data.toString());
-console.log("Successfully parsed config data, loading the saves ...");
-
-
-
-io.loadRP();
-console.log("Loaded the saves, loading presets");
-
-presets_mod.loadPresets();
-console.log("Loaded the presets, loading the token");
-
-onLoadedTime = new Date().getTime();
-
-
-data = fs.readFile("./token.txt", (err, data) => {
-	if (err) {
-		console.log("Error while loading the token, be sure that you have it in plain text in the file token.txt!");
-		throw err;
+	data = fs.readFileSync("./config.json");
+	// Read data.json
+	if (data === null) {
+		console.log("Error while reading the config.json file, be sure to have it with the right name and with the right permissions!");
 	}
-	console.log("Successfully loaded the token, logging in...");
-	token = data.toString().trim();
-	bot.login(token);
-	console.log(token);
-});
+	console.log("Successfully read config.json, parsing its data ...");
+	// Success; Parse data.json
+	config = JSON.parse(data.toString());
+	console.log("Successfully parsed config data, loading the saves ...");
 
+
+
+	io.loadRP();
+	console.log("Loaded the saves, loading presets");
+
+	presets_mod.loadPresets();
+	console.log("Loaded the presets, loading the token");
+
+	onLoadedTime = new Date().getTime();
+
+
+	data = fs.readFile("./token.txt", (err, data) => {
+		if (err) {
+			console.log("Error while loading the token, be sure that you have it in plain text in the file token.txt!");
+			throw err;
+		}
+		console.log("Successfully loaded the token, logging in...");
+		token = data.toString().trim();
+		bot.login(token);
+		//console.log(token);
+	});
+}();
 function exitHandler(options, err) {
 	if (options.exception === undefined) {
 		if (options.exit === undefined) {

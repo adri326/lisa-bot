@@ -171,6 +171,7 @@ exports.displayChar = function(msg) {
 		embed.fields.push({name: "Statistics", value: stats});
 		var lxp = actChar.lvl * actChar.lvl * 100;
 		embed.fields.push({name: "Level " + actChar.lvl, value: "xp: " + Math.round(actChar.xp) + "/" + lxp});
+		embed.fields.push({name: "Skill points", value: actChar.skill_points + " points (" + rp[msg.channel].skill_points_per_level + " points per level)"});
 		utils.replyMessage(msg, {embed: embed});
 	}
 }
@@ -318,6 +319,10 @@ exports.loadRP = function() {
 							chan.chars[x].lvl = 1;
 							console.log(items[i] + ": char(" + x + ").xp");
 							problems++;
+						}
+						if (chan.chars[x].skill_points === undefined) {
+							chan.chars[x].skill_points = 0;
+							console.log(items[i] + ": char(" + x + ").skill_points");
 						}
 					}
 					for (item in config.settingList) {

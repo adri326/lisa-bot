@@ -188,8 +188,8 @@ exports.createRoom = function(msg) {
 	return room;
 }
 
-var reg_args = "([a-zA-Z_\"0-9]*)(?:, ?([a-zA-Z_\"0-9]*))?";
-exports.execute_pseudocode = function(msg, code) {
+var reg_args = new RegExp("(?: *, *|\\()([a-zA-Z_\"0-9]*)", "g"); // Gives back all the elements withing brackets: e.g "(a, 2)" will return ["(a, 2", "a", 2]
+exports.execute_pseudocode = function(msg, code, match) {
 	var selection = [];
 	for (action in code) {
 		//console.log(code[action]);
@@ -199,28 +199,75 @@ exports.execute_pseudocode = function(msg, code) {
 			case cmd == "select_every_enemy":
 				selection = rp[msg.channel].room.entities;
 				break;
+			case cmd == "select_every_ally":
+				selection = [];
+				Object.keys(rp[msg.channel].chars).forEach(key => {
+					selection.push(rp[msg.channel].chars[key]);
+				});
+				selection.splice(msg.author);
+				break;
+			case cmd == "select_every_player":
+				selection = [];
+				Object.keys(rp[msg.channel].chars).forEach(key => {
+					selection.push(rp[msg.channel].chars[key]);
+				});
+				break;
+
 			// Relative selection
 			case cmd == "select_one_random":
 				selection = [selection[Math.floor(module.exports.random(0, selection.length))]];
 				break;
-			// Action
-			case (/^give_effect\(.*\)$/).test(cmd):
-				var r = (new RegExp("^give_effect\\(" + reg_args + "\\)$")).exec(cmd);
+			case (/^select_match_input\(.*\)$/).test(cmd):
+				var r = reg_args.exec(cmd);
+				var newselection = [];
 				if (r !== null) {
-					for (i in selection) {
-						var eid = module.exports.getObjectID(selection[i].effects, r[1]);
-						if (eid != -1) {
-							selection[i].effects[eid].length = Math.max(selection[i].effects[eid].length, +r[2]);
-						} else {
-							selection[i].effects.push({name: r[1], length: r[2]});
+					var s = match[+r[1]+1];
+					if (s != undefined) {
+						for (i in selection) {
+							if (rp[msg.channel].room != undefined)
+							if (selection[i] in rp[msg.channel].room.entities) {
+								if (rp[msg.chanel].mobs[selection[i].id].name == s) {
+									newselection.push(selection[i]);
+								}
+							} else {
+								if (selection[i].name == s) {
+									newselection.push(selection[i]);
+								}
+							}
 						}
 					}
-					console.log("Gave effect '" + r[1] + "' to every selected enemies");
+				}
+				break;
+
+			// Action
+			case (/^give_effect\(.*\)$/).test(cmd):
+				var r = reg_args.exec(cmd);
+				if (r !== null) {
+					for (i in selection) {
+						if (typeof(selection[i]) !== "undefined") {
+							if (selection[i].effects != undefined) {
+								var eid = module.exports.getObjectID(selection[i].effects, r[1]);
+								if (eid != -1) {
+									selection[i].effects[eid].length = Math.max(selection[i].effects[eid].length, +r[2]);
+								} else {
+									selection[i].effects.push({name: r[1], length: +r[2]});
+								}
+							}
+						}
+					}
 				} else {
-					//console.log("^give_effect\\(" + reg_args + "\\)$");
 					console.log("Error, regexp couldn't work");
 				}
-
+				break;
+			case (/^inc_HP\(.*\)$/).test(cmd):
+				var r = reg_args.exec(cmd);
+				if (r !== null) {
+					for (i in selection) {
+						if (selection.HP != undefined) {
+							selection.HP += +r[1] || 0;
+						}
+					}
+				}
 				break;
 			default:
 				break;

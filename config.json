@@ -16,7 +16,9 @@
 		"turn_type": 0,
 		"display_passive_damages": true,
 		"display_players_heal": true,
-		"display_combat_text": true
+		"display_combat_text": true,
+		"display_noop": false,
+		"skill_points_per_level": 1
 	},
 	"defaults": {
 		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
@@ -44,7 +46,7 @@
 			"matches": [
 				{
 					"when": "^(Inferno) \"?([a-z ]*)\"?",
-					"action": ["select_every_enemy", "select_match_input(2)", "give_effect(fire,10)"]
+					"action": ["select_every_enemy", "select_match_input(2)", "select_one_random", "give_effect(fire,10)"]
 				},
 				{
 					"when": "^(Inferno)$",
@@ -172,9 +174,14 @@
 			"admin_reinit_success": "Successfully reinitialized `[[3]]`",
 			"casting_spell": "Casting spell `[[spell]]`...",
 			"spell_success": "This spell worked like a charm!",
-			"mob_damage_fire": "The entity `[[name]]` took [[damage]] damage from fire!",
+			"mob_damage_fire": "`[[name]]` took [[damage]] damage from fire!",
+			"mob_died": "`[[name]]` died",
+			"mob_suspended": "`[[name]]` tried to move, but couldn't.",
 			"player_heal_HP": "`[[name]]` healed [[amount]] HP, he/she has now: [[now]]",
 			"player_heal_MP": "`[[name]]` healed [[amount]] MP, he/she has now: [[now]]",
+			"player_got_xp": "[[name]] received [[amount]] xp, he/she has now: [[level]]lvls ([[xp]]/[[maxxp]])",
+			"player_level_up": "[[name]] leveled up! He/she has now: [[level]]lvls ([[xp]]/[[maxxp]])",
+			"player_got_skill_points": "[[name]] got [[amount]] skill points!",
 
 			"error_no_char": "I don't know you! First introduce you using `l!rp char create`",
 			"error_char_no_class": "You don't have any class? Assign yourself one using `l!rp char class`!",

@@ -1,0 +1,38 @@
+{
+  "id": "magic_basic",
+  "name": "Magic basic",
+  "desc": "The basic preset, which include a bunch of magic components",
+
+  "spells": [
+    {
+      "name": "Reparus",
+      "desc": "Heals one ally",
+      "MP": 8,
+      "matches": [
+        {
+          "when": "^(Reparus)$",
+          "action": ["select_every_ally", "select_one_random", "inc_HP(5)"]
+        },
+        {
+          "when": "^(Reparus) \"?([a-z0-9 ]*)\"?",
+          "action": ["select_every_ally", "select_match_input(2)", "select_one_random", "inc_HP(5)"]
+        }
+      ]
+    },
+    {
+      "name" : "Suspend",
+      "desc": "Prevents an enemy to move",
+      "MP": 6,
+      "matches": [
+        {
+          "when": "^(Suspend)$",
+          "action": ["select_every_enemy", "select_one_random", "give_effect(suspend, 4)"]
+        },
+        {
+          "when": "^(Suspend) \"?([a-z0-9 ]*)\"?",
+          "action": ["select_ever_enemy", "select_match_input(2)", "select_one_random", "give_effect(suspend, 4)"]
+        }
+      ]
+    }
+  ]
+}

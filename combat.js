@@ -1,4 +1,5 @@
 const utils = require("./utils");
+const io = require("./io");
 const attrmgt = require("./attrmgt");
 
 exports.hit = function(msg, someone) {
@@ -15,18 +16,30 @@ exports.give_xp = function(msg, someone, amount, disp = false) {
 
 	someone.xp += amount;
 	var lxp = someone.lvl * someone.lvl * 100;
+	var text = io.say(msg, "player_got_xp", {name: someone.name, level: someone.lvl, xp: Math.round(someone.xp*10)/10, maxxp: lxp, amount: Math.round(amount*10)/10});
 	if (someone.xp >= lxp) {
 		while (someone.xp >= lxp) {
 			someone.lvl++;
 			someone.xp -= lxp;
 			lxp = someone.lvl * someone.lvl * 100;
+			var sub = module.exports.level_up_awards(msg, someone);
+			if (sub !== null)
+				text += "\r\n" + sub;
+			text += "\r\n" + io.say(msg, "player_level_up", {name: someone.name, level: someone.lvl, xp: Math.round(someone.xp*10)/10, maxxp: lxp})
 		}
 	}
-	var text = someone.name + " got " + Math.round(amount) + " xp points. He/she has now: " + Math.round(someone.xp) + "/" + lxp + " lvl: " + someone.lvl;
+
 	if (disp) {
 		utils.replyMessage(msg, text);
 	}
 	return text;
+}
+exports.level_up_awards = function(msg, someone) {
+	someone.skill_points += Math.max(0, rp[msg.channel].skill_points_per_level);
+	if (rp[msg.channel].skill_points_per_level>0) {
+		return io.say(msg, "player_got_skill_points", {name: someone.name, amount: rp[msg.channel].skill_points_per_level});
+	}
+	return null;
 }
 
 exports.action_time = function(msg, action_name) { // Actions parser and calculator
@@ -86,12 +99,12 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 				var a = parseInt(mob_raw.attrs[xp].values[0]);
 				var b = parseInt(mob_raw.attrs[xp].values[1]);
 				if (a !== null && b !== null) {
-					text += "\r\n" + module.exports.give_xp(msg, player_raw, utils.random(a, b), true);
+					text += "\r\n" + module.exports.give_xp(msg, player_raw, utils.random(a, b), false);
 				} else {
 					utils.replyMessage(msg, io.say(msg, "error_attr_syntax"));
 				}
 			}
-			return;
+			return text;
 		} else {
 			text += "\r\n" + "You hit " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.";
 		}

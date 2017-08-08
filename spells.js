@@ -24,7 +24,7 @@ exports.executeSpell = function(msg, spell) {
   var caster = rp[msg.channel].chars[msg.author];
   if (caster.MP >= spell.MP) {
     caster.MP -= spell.MP;
-    if (utils.execute_pseudocode(msg, spell.action)) {
+    if (utils.execute_pseudocode(msg, spell.action, spell.data)) {
       utils.replyMessage(msg, io.say(msg, "spell_success"));
     }
   } else {
