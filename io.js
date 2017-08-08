@@ -5,7 +5,7 @@ const specie = require("./specie");
 const fs = require("fs");
 const CircularJSON = require("circular-json");
 
-exports.say = function(msg, msg_name) {
+exports.say = function(msg, msg_name, msg_info = {}) {
 	var string = config.lang[lang][msg_name];
   if (string !== undefined) {
   	try {
@@ -19,21 +19,29 @@ exports.say = function(msg, msg_name) {
   			string = string.replace("{{CLASS}}", rp[msg.channel].classes[rp[msg.channel].chars[msg.author].classId].name);
   		if (string.indexOf("{{SPECIE}}")>-1) // Replace {{SPECIE}} by the specie of the character of the author
   			string = string.replace("{{SPECIE}}", rp[msg.channel].species[rp[msg.channel].chars[msg.author].specieId].name);
-			{ // Replace [[%n%]] by the word of the command located at {n} (excluding "l!")
+			{
+
 				var s = 0, e = 0;
 				while (s > -1 && e > -1) {
 					if ((s = string.indexOf("[[")) > -1) { // Find the first brackets
 						if ((e = string.slice(s).indexOf("]]")) > -1) { // Find the second brackets
 							var u = string.slice(s+2, s+e);
-							console.log(u);
-							if (u != "" && u !== null && +u !== null) {
-								string = string.replace("[["+u+"]]", utils.splitCommand(msg.content.slice(2))[+u]);
+							if (u != "" && u !== null) {
+								if (!isNaN(+u)) {
+									// Replaces [[%n%]] by the word of the command located at {n} (excluding "l!")
+									string = string.replace("[["+u+"]]", utils.splitCommand(msg.content.slice(2))[+u]);
+								} else if (typeof(msg_info[u]) !== "undefined") {
+									// Replaces [[%name%]] by the value given in msg_info
+									string = string.replace("[[" + u + "]]", msg_info[u]);
+								}
 							} else {
 								break;
 							}
 						}
 					}
 				}
+
+
 			}
   	} catch (err) {
   		console.log(err);
@@ -290,9 +298,14 @@ exports.loadRP = function() {
 				} else {
 					var chan = CircularJSON.parse(data.toString());
 					for (x in chan.chars) {
-						if (chan.chars[x].HP === undefined) {
+						if (chan.chars[x].HP == undefined || isNaN(chan.chars[x].HP)) {
 							chan.chars[x].HP = config.defaults.HP;
 							console.log(items[i] + ": char(" + x + ").HP");
+							problems++;
+						}
+						if (chan.chars[x].MP == undefined || isNaN(chan.chars[x].MP)) {
+							chan.chars[x].MP = config.defaults.MP;
+							console.log(items[i] + ": char(" + x + ").MP");
 							problems++;
 						}
 						if (chan.chars[x].holding === undefined) {

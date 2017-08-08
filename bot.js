@@ -335,7 +335,7 @@ function treatMsg(msg) {
 					else if (commandParts[2] == "next") {
 						if (utils.require(msg, reqs.is_room | reqs.are_mobs)) {
 							if (rp[msg.channel].room.entities.length == 0) {
-								rp[msg.channel].room = utils.utils.createRoom(msg);
+								rp[msg.channel].room = utils.createRoom(msg);
 								utils.replyMessage(msg, "Moved to the next room!");
 								io.displayRoom(msg);
 								combat.reset_turns(msg);
@@ -689,6 +689,12 @@ function treatMsg(msg) {
 						turn_amount += combat.action_time(msg, "turn");
 						replyMessage(msg, say(msg, "admin_turn_success"));
 					}
+					else if (commandParts[2] == "reinit") {
+						if (config.settingList[commandParts[3]] != undefined) {
+							rp[msg.channel][config.settingList[commandParts[3]]] = [config.defaults[commandParts[3]]];
+							utils.replyMessage(msg, io.say(msg, "admin_reinit_success"));
+						}
+					}
 				}
 				else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
 					if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room)) {
@@ -720,14 +726,81 @@ function treatMsg(msg) {
 						}
 					}
 				}
+				else if (commandParts[1] == "wait") {
+					turn_amount += combat.action_time(msg, "wait");
+				}
+				else if (commandParts[1] == "spell") {
+					var spellRaw = /(?:"?rp"? "?spell"?) ([a-zA-Z" ]*)/.exec(command)[1];
+					var spell = spells.findSpell(msg, spellRaw);
+					if (spell !== null) {
+						utils.replyMessage(msg, io.say(msg, "casting_spell", {"spell": spell.name}));
+						spells.executeSpell(msg, spell);
+					} else {
+						utils.replyMessage(msg, io.say(msg, "error_spell_not_found"));
+					}
+				}
+
+
 				if (rp[msg.channel] != undefined)
-				if (rp[msg.channel].room != undefined)
-				if (rp[msg.channel].turn_type == 0 && rp[msg.channel].room.entities.length != 0) {
+				if (rp[msg.channel].turn_type == 0) {
 					if (turn_amount > 0) {
 						if (turn_amount > 1) {
-							for (; turn_amount > 1; turn_amount--) { // Loop back into turn_amount until it reaches a value below 1
-								var targetId = Math.floor(utils.random(0, actRoom.entities.length));
-								combat.mob_action(msg, targetId);
+							var embed = {
+								color: config.colors.dungeon,
+								fields: []
+							};
+							for (turn_count = 1; turn_amount >= 1; turn_amount--, turn_count++) { // Loop back into turn_amount until it reaches a value below 1
+								var mob_text = "", players_text = "", combat_text = "";
+								if (utils.require(msg, reqs.is_room | reqs.are_mobs_in_room | reqs.are_mobs, false)) {
+
+									var targetId = Math.floor(utils.random(0, rp[msg.channel].room.entities.length));
+									combat_text += "\r\n" + combat.mob_action(msg, targetId);
+
+									for (mob in rp[msg.channel].room.entities) {
+										var actMob = rp[msg.channel].room.entities[mob];
+										var actMobParent = rp[msg.channel].mobs[actMob.id];
+										for (effect in actMob.effects) {
+											var actEffect = actMob.effects[effect];
+											switch (actEffect.name) {
+												case "fire":
+													actMob.HP -= config.fire_damage;
+													mob_text += "\r\n" + io.say(msg, "mob_damage_fire", {name: actMobParent.name, damage: config.fire_damage});
+													break;
+											}
+										}
+									}
+
+								}
+
+								for (player in rp[msg.channel].chars) {
+
+									var actChar = rp[msg.channel].chars[player];
+									if (actChar.MP < config.maxMP) {
+										actChar.MP += config.MP_recovery;
+										players_text += "\r\n" + io.say(msg, "player_heal_HP", {name: actChar.name, amount: config.HP_recovery, now: Math.round(actChar.HP*10)/10});
+									}
+									if (actChar.HP < config.maxHP) {
+										actChar.HP += config.HP_recovery;
+										players_text += "\r\n" + io.say(msg, "player_heal_MP", {name: actChar.name, amount: config.MP_recovery, now: Math.round(actChar.MP*10)/10});
+									}
+								}
+
+								var text = "";
+
+								if (rp[msg.channel].display_combat_text && combat_text != "") {
+									text += combat_text;
+								}
+								if (rp[msg.channel].display_passive_damages && mob_text != "") {
+									text += mob_text;
+								}
+								if (rp[msg.channel].display_players_heal && players_text != "") {
+									text += players_text;
+								}
+
+								if (text != "") {
+									embed.fields.push({name: "Turn " + turn_count, value: text});
+								}
+
 							}
 						}
 						if (turn_amount > 0) {
@@ -736,6 +809,8 @@ function treatMsg(msg) {
 								combat.mob_action(msg, targetId);
 							}
 						}
+
+						utils.replyMessage(msg, {embed: embed});
 					}
 				}
 			}

@@ -4,12 +4,19 @@
 	"presetsdir": "presets",
 	"itemsPerPage": 3,
 	"maxBranchedCmds": 5,
+	"MP_recovery": 1,
+	"maxMP": 20,
+	"HP_recovery": 0.5,
+	"maxHP": 20,
 	"printableSettings": {
 		"adventure_mode": "auto",
 		"admins": "-1",
 		"user_rights_level": 2,
 		"difficulty": 1,
-		"turn_type": 0
+		"turn_type": 0,
+		"display_passive_damages": true,
+		"display_players_heal": true,
+		"display_combat_text": true
 	},
 	"defaults": {
 		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
@@ -33,14 +40,15 @@
 		"spell": {
 			"name": "Inferno",
 			"desc": "Puts enemies in fire",
+			"MP": 4,
 			"matches": [
 				{
 					"when": "^(Inferno) \"?([a-z ]*)\"?",
-					"action": ["select_every_enemy", "select_match_input(2)", "give_effect(fire)"]
+					"action": ["select_every_enemy", "select_match_input(2)", "give_effect(fire,10)"]
 				},
 				{
 					"when": "^(Inferno)$",
-					"action": ["select_every_enemy", "select_one_random", "give_effect(fire)"]
+					"action": ["select_every_enemy", "select_one_random", "give_effect(fire,10)"]
 				}
 			]
 		},
@@ -53,8 +61,10 @@
 		"AGI": 3,
 		"STR": 4,
 		"HP": 20,
+		"MP": 20,
 		"difficulty": 1
 	},
+	"fire_damage": 1,
 	"settingList": {
 		"class": "classes",
 		"specie": "species",
@@ -69,7 +79,8 @@
 		"MGC",
 		"AGI",
 		"STR",
-		"HP"
+		"HP",
+		"MP"
 	],
 	"mobStats": [
 		"ATK",
@@ -158,6 +169,12 @@
 			"import_preset_success": "Successfully imported the preset `[[4]]`",
 			"remove_preset_success": "Successfully removed the preset `[[4]]`",
 			"admin_turn_success": "Successfully incremented the turn counter!",
+			"admin_reinit_success": "Successfully reinitialized `[[3]]`",
+			"casting_spell": "Casting spell `[[spell]]`...",
+			"spell_success": "This spell worked like a charm!",
+			"mob_damage_fire": "The entity `[[name]]` took [[damage]] damage from fire!",
+			"player_heal_HP": "`[[name]]` healed [[amount]] HP, he/she has now: [[now]]",
+			"player_heal_MP": "`[[name]]` healed [[amount]] MP, he/she has now: [[now]]",
 
 			"error_no_char": "I don't know you! First introduce you using `l!rp char create`",
 			"error_char_no_class": "You don't have any class? Assign yourself one using `l!rp char class`!",
@@ -176,7 +193,9 @@
 			"error_attr_syntax": "The syntax of an `attr` is wrong, please check config.",
 			"error_item_not_in_possession": "You don't have this item in your inventory!",
 			"error_not_enough_item_in_possession": "You don't have enough of this item to give!",
-			"error_preset_not_found": "Sorry, I haven't found the preset you were looking for!"
+			"error_preset_not_found": "Sorry, I haven't found the preset you were looking for!",
+			"error_spell_not_found": "Nothing happened. Your spell doesn't seems to be working...",
+			"error_not_enough_MP": "You don't have any MP left! You should take a rest!"
 		}
 	},
 	"colors": {
@@ -191,6 +210,7 @@
 		"hold": {"base": 2, "speed": 1},
 		"eat": {"base": 4, "speed": 3.5, "speed_range": 20},
 		"turn": 1,
-		"attack": 2
+		"attack": 2,
+		"wait": 2
 	}
 }
