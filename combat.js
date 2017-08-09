@@ -104,6 +104,18 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 					utils.replyMessage(msg, io.say(msg, "error_attr_syntax"));
 				}
 			}
+			mob_raw.attrs.forEach(o => {
+				if (o.name == "item_drop") {
+					var rate = +o.values[1] || 1;
+					if (utils.random(0, 1) <= rate) {
+						rp[msg.channel].objects.forEach((p, i) => {
+							if (p.name == o.values[0]) {
+								rp[msg.channel].room.items.push({id: i, quantity: 1});
+							}
+						});
+					}
+				}
+			});
 			return text;
 		} else {
 			text += "\r\n" + "You hit " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.";
@@ -116,8 +128,8 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 
 			if (player_raw.HP <= 0) {
 				// TODO: le reste ici
-				text += "\r\n" + "You took " + Math.round(MtPdmg*10)/10 + " and YOU DIED. But idk what death is, so I'm gonna give you your health back!"
-				player_raw.HP = 20;
+				text += "\r\n" + "You took " + Math.round(MtPdmg*10)/10 + " and **YOU DIED**. You will ressuscite when entering the next room!"
+				player_raw.HP = 0;
 			} else {
 				text += "\r\n" + "You took " + Math.round(MtPdmg*10)/10 + " of damage from " + mob_raw.name + ". " + Math.round(player_raw.HP*10)/10 + " HP left."
 			}

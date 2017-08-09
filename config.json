@@ -4,9 +4,9 @@
 	"presetsdir": "presets",
 	"itemsPerPage": 3,
 	"maxBranchedCmds": 5,
-	"MP_recovery": 1,
+	"MP_recovery": 2,
 	"maxMP": 20,
-	"HP_recovery": 0.5,
+	"HP_recovery": 2,
 	"maxHP": 20,
 	"printableSettings": {
 		"adventure_mode": "auto",
@@ -18,14 +18,16 @@
 		"display_players_heal": true,
 		"display_combat_text": true,
 		"display_noop": false,
-		"skill_points_per_level": 1
+		"skill_points_per_level": 1,
+		"difficulty_increment": 0.04
 	},
 	"defaults": {
 		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
 		"specie": {"name": "Human", "desc": "This specie is the basic specie, it hasn't any special attributes"},
 		"object": {"name": "Stick", "desc": "A stick you found is the forest, it is rather useless.", "class": "sword", "subclass": "stick",
 			"attrs": [{"name": "base_stat",
-				"values": ["ATK", "0", "int"]}]},
+				"values": ["ATK", "0", "int"]}],
+			"difficulty": 0},
 		"mob": {"name": "Zombie",
 			"desc": "Humanoid, eats flesh, walks slowly",
 			"difficulty": 1,
@@ -182,6 +184,10 @@
 			"player_got_xp": "[[name]] received [[amount]] xp, he/she has now: [[level]]lvls ([[xp]]/[[maxxp]])",
 			"player_level_up": "[[name]] leveled up! He/she has now: [[level]]lvls ([[xp]]/[[maxxp]])",
 			"player_got_skill_points": "[[name]] got [[amount]] skill points!",
+			"player_ressuscited": "[[name]] ressuscited! Be brave!",
+			"item_pick_success": "Successfully picked the item `[[name]]`",
+			"item_drop_success": "Successfully dropped the item `[[name]]`",
+			"use_item_success": "Successfully used the item `[[name]]`",
 
 			"error_no_char": "I don't know you! First introduce you using `l!rp char create`",
 			"error_char_no_class": "You don't have any class? Assign yourself one using `l!rp char class`!",
@@ -202,7 +208,9 @@
 			"error_not_enough_item_in_possession": "You don't have enough of this item to give!",
 			"error_preset_not_found": "Sorry, I haven't found the preset you were looking for!",
 			"error_spell_not_found": "Nothing happened. Your spell doesn't seems to be working...",
-			"error_not_enough_MP": "You don't have any MP left! You should take a rest!"
+			"error_not_enough_MP": "You don't have any MP left! You should take a rest!",
+			"error_dead": "Err... Sorry? Deads are dead, they can't do that!",
+			"error_item_not_in_room": "Sorry, I couldn't find the item you were looking for!"
 		}
 	},
 	"colors": {

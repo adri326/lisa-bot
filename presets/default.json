@@ -43,6 +43,21 @@
       "HP": [8, 12],
       "ATK": 3,
       "DEF": 1
+    },
+    {
+      "name": "Cthulu",
+      "desc": "_*#^-:)/(:-^#*_*#^-:)/(:-^#*_",
+      "attrs": [
+        {"name": "xp_drop", "values": ["100", "400"]},
+        {"name": "item_drop", "values": ["Eye of Cthulu", "1"]},
+        {"name": "item_drop", "values": ["Eye of Cthulu", "0.5"]}
+      ],
+      "inv": [],
+      "holding": "",
+      "HP": 80,
+      "ATK": 12,
+      "DEF": 4,
+      "VIT": 2
     }
   ],
   "objects": [
@@ -54,7 +69,8 @@
       "attrs": [
         {"name": "base_stat", "values": ["ATK", "2", "int"]},
         {"name": "base_stat", "values": ["VIT", "-1", "int"]}
-      ]
+      ],
+      "difficulty": 1
     },
     {
       "name": "Iron hammer",
@@ -64,7 +80,8 @@
       "attrs": [
         {"name": "base_stat", "values": ["ATK", "4", "int"]},
         {"name": "base_stat", "values": ["VIT", "-2", "int"]}
-      ]
+      ],
+      "difficulty": 2
     },
     {
       "name": "Magically reinforced Iron hammer",
@@ -75,7 +92,8 @@
         {"name": "base_stat", "values": ["ATK", "6", "int"]},
         {"name": "base_stat", "values": ["DEF", "1", "int"]},
         {"name": "base_stat", "values": ["MGC", "3", "int"]}
-      ]
+      ],
+      "difficulty": 4
     },
     {
       "name": "Wooden sword",
@@ -84,7 +102,8 @@
       "subclass": "base",
       "attrs": [
         {"name": "base_stat", "values": ["ATK", "2", "int"]}
-      ]
+      ],
+      "difficulty": 1
     },
     {
       "name": "Iron sword",
@@ -94,7 +113,8 @@
       "attrs": [
         {"name": "base_stat", "values": ["ATK", "4", "int"]},
         {"name": "base_stat", "values": ["DEF", "1", "int"]}
-      ]
+      ],
+      "difficulty": 2
     },
     {
       "name": "Magically reinforced Iron sword",
@@ -106,6 +126,37 @@
         {"name": "base_stat", "values": ["DEF", "3", "int"]},
         {"name": "base_stat", "values": ["MGC", "3", "int"]},
         {"name": "base_stat", "values": ["VIT", "2", "int"]}
+      ],
+      "difficulty": 4
+    },
+    {
+      "name": "The edge of destiny",
+      "desc": "A sword forged ages ago. It has seen more battles than you would ever dream of",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "10", "int"]},
+        {"name": "base_stat", "values": ["DEF", "4", "int"]},
+        {"name": "base_stat", "values": ["VIT", "3", "int"]}
+      ],
+      "difficulty": 6
+    },
+    {
+      "name": "Soul of Cthulu",
+      "desc": "Invokes the Cthulu",
+      "class": "invoker",
+      "subclass": "boss",
+      "attrs": [
+        {"name": "on_use", "values": ["summon(Cthulu)"]}
+      ],
+      "difficulty": 8
+    },
+    {
+      "name": "Eye of Cthulu",
+      "desc": "The eye of the mighty Cthulu. It glows red in the dark...",
+      "class": "ingredient",
+      "subclass": "brewing",
+      "attrs": [
       ]
     }
   ]

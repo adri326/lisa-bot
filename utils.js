@@ -78,6 +78,12 @@ exports.require = function(msg, requirements = 0, display = true) {
       return false;
     }
   }
+	if ((requirements & reqs.is_alive) == reqs.is_alive) {
+		if (rp[msg.channel].chars[msg.author].HP <= 0) {
+			if (display) module.exports.replyMessage(msg, io.say(msg, "error_dead"));
+			return false;
+		}
+	}
 
 
 	return true;
@@ -145,8 +151,10 @@ exports.createChar = function(id, name) {
 		classId: -1,
 		specieId: -1,
 		inventory: [],
+		holding: -1,
 		xp: 0,
-		lvl: 1
+		lvl: 1,
+		skill_points: 0
 	};
 	char.ATK = config.defaults.ATK;
 	char.DEF = config.defaults.DEF;
@@ -155,6 +163,7 @@ exports.createChar = function(id, name) {
 	char.AGI = config.defaults.AGI;
 	char.STR = config.defaults.STR;
 	char.HP = config.defaults.HP;
+	char.MP = config.defaults.MP;
 	return char;
 }
 exports.createRoom = function(msg) {
@@ -166,10 +175,10 @@ exports.createRoom = function(msg) {
 	var mobCount = module.exports.random(Math.sqrt(difficulty), difficulty);
 	for (i = 0; i < mobCount; i++) {
 		var found = false;
-		for (j = 0; j < 5 && !found; j++) {
+		for (j = 0; j < mobCount && !found; j++) {
 			var n = Math.floor(Math.random() * rp[msg.channel].mobs.length);
 			var mob = rp[msg.channel].mobs[n];
-			if (mob.difficulty <= difficulty) {
+			if (mob.difficulty != undefined && mob.difficulty <= +difficulty) {
 				var HP = 0;
 				if (Array.isArray(rp[msg.channel].mobs[n].HP)) {
 					if (rp[msg.channel].mobs[n].HP.length == 2)
@@ -182,6 +191,22 @@ exports.createRoom = function(msg) {
 				}
 				room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, effects: [], holding: module.exports.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
 				found = true;
+			}
+		}
+	}
+	var itemCount = module.exports.random(Math.sqrt(difficulty), difficulty);
+	for (i = 0; i < itemCount; i++) {
+		var found = false;
+		for (j = 0; j < itemCount && !found; j++) {
+			var targetId = Math.floor(module.exports.random(0, rp[msg.channel].objects.length));
+			var actObj = rp[msg.channel].objects[targetId];
+			if (actObj.difficulty != undefined && actObj.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty))) {
+				found = true;
+				var quantity = 1;
+				if (Array.isArray(actObj.spawn_quantity)) {
+					quantity = actObj.spawn_quantity[Math.floor(module.exports.random(0, actObj.spawn_quantity.length))];
+				}
+				room.items.push({id: targetId, quantity: quantity});
 			}
 		}
 	}
@@ -269,6 +294,23 @@ exports.execute_pseudocode = function(msg, code, match) {
 					}
 				}
 				break;
+
+			case (/^summon\(.*\)$/).test(cmd):
+				var r = reg_args.exec(cmd);
+				if (r !== null) {
+					var foundEntity = null;
+					rp[msg.channel].mobs.forEach((o, i) => {
+						if (o.name == r[1]) {
+							foundEntity = i;
+						}
+					});
+					if (foundEntity !== null) {
+						var actMob = rp[msg.channel].mobs[foundEntity];
+						rp[msg.channel].room.entities.push({id: foundEntity, HP: actMob.HP});
+					}
+				}
+				break;
+
 			default:
 				break;
 		}

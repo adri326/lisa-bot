@@ -253,13 +253,17 @@ exports.displayRoom = function(msg) {
 			if (actRoom.entities.length > 0) {
 				for (i in actRoom.entities) {
 					var parent = rp[msg.channel].mobs[actRoom.entities[i].id];
-					string = string + parent.name;
-					if (parent.HP != undefined) string = string + " (" + (actRoom.entities[i].HP | "Error") + "/" + (parent.HP[1] || parent.HP[0] || parent.HP) + ")";
-					if (actRoom.entities[i].holding != -1 && actRoom.entities[i].holding != undefined) {
-						var item = rp[msg.channel].objects[actRoom.entities[i].holding];
-						if (item != undefined) string = string + " [" + item.name + "]";
+					if (parent != undefined) {
+						string = string + parent.name;
+						if (parent.HP != undefined) string = string + " (" + (actRoom.entities[i].HP | "Error") + "/" + (parent.HP[1] || parent.HP[0] || parent.HP) + ")";
+						if (actRoom.entities[i].holding != -1 && actRoom.entities[i].holding != undefined) {
+							var item = rp[msg.channel].objects[actRoom.entities[i].holding];
+							if (item != undefined) string = string + " [" + item.name + "]";
+						}
+						string = string + "\r\n";
+					} else {
+						string = string + actRoom.entities[i].id;
 					}
-					string = string + "\r\n";
 				}
 			}
 			else {
@@ -269,7 +273,25 @@ exports.displayRoom = function(msg) {
 		else {
 			string = string + "*Nobody's here* D:";
 		}
-		embed.fields.push({name: "Entities", value: string});
+		embed.fields.push({name: "Entities", value: string.toString()});
+		string = "";
+		if (actRoom.items !== undefined) {
+			if (actRoom.items.length > 0) {
+				for (i in actRoom.items) {
+					var parent = rp[msg.channel].objects[actRoom.items[i].id];
+					string = string + parent.name;
+
+					string = string + "\r\n";
+				}
+			}
+			else {
+				string = string + "*There is no item in this room* !";
+			}
+		}
+		else {
+			string = string + "*There is no item in this room* !";
+		}
+		embed.fields.push({name: "Items", value: string.toString()});
 		utils.replyMessage(msg, {embed: embed});
 	}
 }

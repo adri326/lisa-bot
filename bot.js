@@ -58,7 +58,8 @@ reqs = {
 	are_mobs: 32,
 	are_objects: 64,
 	is_room: 128,
-	are_mobs_in_room: 256
+	are_mobs_in_room: 256,
+	is_alive: 512
 };
 
 
@@ -71,38 +72,11 @@ talking = [{
 rp = [];
 presets = [];
 
-
-Level = {
-	new: function(width, height, depth, stairsNumber, specialsNumber) {
-		var level = [];
-		for (y = 0; y < height; y++) {
-			level[y] = [];
-			for (x = 0; x < width; x++) {
-				level[y][x] = [];
-			}
-		}
-		for (s = 0, t = 0; s < stairsNumber; s++, t++) {
-			var x = Math.floor(Math.random() * width);
-			var y = Math.floor(Math.random() * height);
-
-			if (level[y][x].indexOf("stair") <= -1) {
-				level[y][x].push("stair");
-			} else if (t <= stairsNumber * 2) {
-				s--; // Make the loadin' time longer;
-			}
-		}
-		return level;
-	}
-}
-
 function initRP(msg) {
 	utils.replyMessage(msg, io.say("init_alert"));
 	rp[msg.channel] = utils.createRP(msg.channel);
 	utils.replyMessage(msg, io.say("init_success"));
 }
-
-
-
 
 
 
@@ -249,9 +223,7 @@ function treatMsg(msg) {
 					turn_amount = 0;
 				}
 
-				// NOTE: Character management
 				if (commandParts[1] == "char") {
-
 					if (commandParts[2] == "create") {
 						// l!RP char create
 
@@ -282,7 +254,6 @@ function treatMsg(msg) {
 						io.displayChar(msg);
 
 					}
-
 				}
 				else if (commandParts[1] == "inv") {
 					if (commandParts[2] == undefined || commandParts[2] == "list") {
@@ -309,44 +280,91 @@ function treatMsg(msg) {
 							} else {
 								utils.replyMessage(msg, "I couldn't find the object you were looking for!");
 							}
-						} else if (commandParts[3].startsWith("<@")) {
-
-							var player = commandParts[3].slice(2, commandParts[3].length - 1);
-							var oinfo = utils.splitCommand(command.slice(34).trim());
-							if (inv.give(msg, rp[msg.channel].chars[msg.author], player, oinfo[0], oinfo[1], commandParts[2]=="cgive")) {
-								if (commandParts[2] == "cgive") {
-									turn_amount += combat.action_time(msg, "give_cheat");
+						} else {
+							if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
+								var player = "";
+								if (commandParts[3].startsWith("<@")) {
+									player = commandParts[3].slice(2, commandParts[3].length - 1);
+								} else {
+									Object.keys(rp[msg.channel].chars).forEach(key => {
+										if (rp[msg.channel].chars[key].name == commandParts[3]) {
+											player = key;
+										}
+									});
 								}
-								else {
-									turn_amount += combat.action_time(msg, "give");
+								if (inv.give(msg, msg.author, player, commandParts[4], commandParts[5], commandParts[2]=="cgive")) {
+									if (commandParts[2] == "cgive") {
+										turn_amount += combat.action_time(msg, "give_cheat");
+									}
+									else {
+										turn_amount += combat.action_time(msg, "give");
+									}
 								}
 							}
 						}
 					}
 					else if (commandParts[2] == "hold") {
-						if (commandParts[3] != undefined) {
-							var objectInfo = utils.splitCommand(command.slice(11).trim());
+						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
+							if (commandParts[3] != undefined) {
+								var objectInfo = utils.splitCommand(command.slice(11).trim());
 
-							var objectId = utils.getObjectID(rp[msg.channel].objects, objectInfo[0]);
-							if (objectId != -1) {
-								var actChar = rp[msg.channel].chars[msg.author];
-								var objectFound = false;
-								for (item in actChar.inventory) {
-									if (actChar.inventory[item].id == objectId) {
-										if (actChar.holding != -1 && actChar.holding != undefined)
-											actChar.inventory.push({id: actChar.holding, quantity: 1});
-										actChar.holding = objectId;
-										actChar.inventory.splice(item, 1);
-										utils.replyMessage(msg, "Successfully equiped the item "+objectInfo[0]);
-										turn_amount += combat.action_time(msg, "hold");
-										objectFound = true;
-										break;
+								var objectId = utils.getObjectID(rp[msg.channel].objects, objectInfo[0]);
+								if (objectId != -1) {
+									var actChar = rp[msg.channel].chars[msg.author];
+									var objectFound = false;
+									for (item in actChar.inventory) {
+										if (actChar.inventory[item].id == objectId) {
+											if (actChar.holding != -1 && actChar.holding != undefined)
+												actChar.inventory.push({id: actChar.holding, quantity: 1});
+											actChar.holding = objectId;
+											actChar.inventory.splice(item, 1);
+											utils.replyMessage(msg, "Successfully equiped the item "+objectInfo[0]);
+											turn_amount += combat.action_time(msg, "hold");
+											objectFound = true;
+											break;
+										}
 									}
+									if (!objectFound)
+										utils.replyMessage(msg, "You don't have the item!");
+								} else {
+									utils.replyMessage(msg, "Item not found!");
 								}
-								if (!objectFound)
-									utils.replyMessage(msg, "You don't have the item!");
+							}
+						}
+					}
+					else if (commandParts[2] == "pick") {
+						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
+							var pickable = null;
+							rp[msg.channel].room.items.forEach((o, i) => {
+								var actObj = rp[msg.channel].objects[o.id];
+								if (actObj.name == commandParts[3]) {
+									pickable = i;
+								}
+							});
+							if (pickable !== null) {
+								rp[msg.channel].chars[msg.author].inventory.push(rp[msg.channel].room.items[pickable]);
+								rp[msg.channel].room.items.splice(pickable, 1);
+								utils.replyMessage(msg, io.say(msg, "item_pick_success", {name: commandParts[3]}));
 							} else {
-								utils.replyMessage(msg, "Item not found!");
+								utils.replyMessage(msg, io.say(msg, "error_item_not_in_room"));
+							}
+						}
+					}
+					else if (commandParts[2] == "drop") {
+						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
+							var pickable = null;
+							rp[msg.channel].chars[msg.author].inventory.forEach((o, i) => {
+								var actObj = rp[msg.channel].objects[o.id];
+								if (actObj.name == commandParts[3]) {
+									pickable = i;
+								}
+							});
+							if (pickable !== null) {
+								rp[msg.channel].room.items.push(rp[msg.channel].chars[msg.author].inventory[pickable]);
+								rp[msg.channel].chars[msg.author].inventory.splice(pickable, 1);
+								utils.replyMessage(msg, io.say(msg, "item_drop_success", {name: commandParts[3]}));
+							} else {
+								utils.replyMessage(msg, io.say(msg, "error_item_not_in_possession"));
 							}
 						}
 					}
@@ -356,12 +374,20 @@ function treatMsg(msg) {
 						io.displayRoom(msg);
 					}
 					else if (commandParts[2] == "next") {
-						if (utils.require(msg, reqs.is_room | reqs.are_mobs)) {
+						if (utils.require(msg, reqs.is_room | reqs.are_mobs | reqs.has_char | reqs.is_alive)) {
 							if (rp[msg.channel].room.entities.length == 0) {
 								rp[msg.channel].room = utils.createRoom(msg);
 								utils.replyMessage(msg, "Moved to the next room!");
 								io.displayRoom(msg);
 								combat.reset_turns(msg);
+								rp[msg.channel].difficulty = (+rp[msg.channel].difficulty + +rp[msg.channel].difficulty_increment) + "";
+								for (char in rp[msg.channel].chars) {
+									if (rp[msg.channel].chars[char].HP <= 0) {
+										rp[msg.channel].chars[char].HP = config.maxHP/2;
+										rp[msg.channel].chars[char].xp = 0;
+										players_text += "\r\n" + io.say(msg, "player_ressuscited", {name: rp[msg.channel].chars[char].name});
+									}
+								}
 							}
 							else {
 								utils.replyMessage(msg, "Not every mob has been killed!");
@@ -385,7 +411,6 @@ function treatMsg(msg) {
 
 				}
 				else if (commandParts[1] == "admin" && canCheat(msg)) {
-
 					if (commandParts[2] == "settings") {
 						if (commandParts[3] != undefined && commandParts[4] != undefined) {
 
@@ -689,7 +714,12 @@ function treatMsg(msg) {
 					}
 					else if (commandParts[2] == "kill") {
 						var name = utils.splitCommand(command.slice(13).trim())[0];
-						var mobId = utils.getObjectID(rp[msg.channel].mobs, name);
+						var mobId = -1;
+						rp[msg.channel].room.entities.forEach((o, i) => {
+							if (rp[msg.channel].mobs[o.id].name == commandParts[3]) {
+								mobId = i;
+							}
+						});
 						if (mobId != -1) {
 							var mob = rp[msg.channel].mobs[mobId];
 							var actRoom = rp[msg.channel].room;
@@ -752,7 +782,7 @@ function treatMsg(msg) {
 					}
 				}
 				else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
-					if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room)) {
+					if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room | reqs.is_alive)) {
 						// TODO: separate the player => mob and the mob => player, to make ALL the mob attack
 						var actRoom = rp[msg.channel].room;
 						var targetId = Math.floor(utils.random(0, actRoom.entities.length));
@@ -785,20 +815,37 @@ function treatMsg(msg) {
 					}
 				}
 				else if (commandParts[1] == "wait") {
-					turn_amount += combat.action_time(msg, "wait");
+					if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
+						turn_amount += combat.action_time(msg, "wait");
+					}
 				}
 				else if (commandParts[1] == "spell") {
-					var spellRaw = /(?:"?rp"? "?spell"?) ([a-zA-Z" ]*)/.exec(command)[1];
-					var spell = spells.findSpell(msg, spellRaw);
-					if (spell !== null) {
-						utils.replyMessage(msg, io.say(msg, "casting_spell", {"spell": spell.name}));
-						var text = spells.executeSpell(msg, spell);
-						if (text != "" && text != undefined && text !== null) {
-							players_turn += "\r\n" + text;
+					if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
+						var spellRaw = /(?:"?rp"? "?spell"?) ([a-zA-Z" ]*)/.exec(command)[1];
+						var spell = spells.findSpell(msg, spellRaw);
+						if (spell !== null) {
+							utils.replyMessage(msg, io.say(msg, "casting_spell", {"spell": spell.name}));
+							var text = spells.executeSpell(msg, spell);
+							if (text != "" && text != undefined && text !== null) {
+								players_turn += "\r\n" + text;
+							}
+						} else {
+							utils.replyMessage(msg, io.say(msg, "error_spell_not_found"));
 						}
-					} else {
-						utils.replyMessage(msg, io.say(msg, "error_spell_not_found"));
 					}
+				}
+				else if (commandParts[1] == "use") {
+					var actChar = rp[msg.channel].chars[msg.author];
+					var actObj = rp[msg.channel].objects[actChar.holding];
+					actObj.attrs.forEach(a => {
+						if (a.name == "on_use") {
+							if (utils.execute_pseudocode(msg, a.values, [actObj.name])) {
+								actChar.holding = -1;
+								utils.replyMessage(msg, io.say(msg, "use_item_success", {name: actObj.name}));
+							}
+						}
+						console.log(CircularJSON.stringify(a));
+					});
 				}
 
 				if (players_turn != "" && players_turn != undefined && players_turn !== null) {
@@ -824,18 +871,20 @@ function treatMsg(msg) {
 								for (mob = 0; mob < rp[msg.channel].room.entities.length; mob++) {
 									var actMob = rp[msg.channel].room.entities[mob];
 									var actMobParent = rp[msg.channel].mobs[actMob.id];
-									for (effect = 0; effect < actMob.effects.length; effect++) {
-										var actEffect = actMob.effects[effect];
-										switch (actEffect.name) {
-											case "fire":
-												actMob.HP -= config.fire_damage;
-												mob_text += "\r\n" + io.say(msg, "mob_damage_fire", {name: actMobParent.name, damage: config.fire_damage});
-												break;
-										}
-										actEffect.length -= 1;
-										if (isNaN(actEffect.length) || actEffect.length == null || actEffect.length <= 0) {
-											actMob.effects.splice(effect, 1);
-											effect--;
+									if (actMobParent != undefined) {
+										for (effect = 0; effect < actMob.effects.length; effect++) {
+											var actEffect = actMob.effects[effect];
+											switch (actEffect.name) {
+												case "fire":
+													actMob.HP -= config.fire_damage;
+													mob_text += "\r\n" + io.say(msg, "mob_damage_fire", {name: actMobParent.name, damage: config.fire_damage});
+													break;
+											}
+											actEffect.length -= 1;
+											if (isNaN(actEffect.length) || actEffect.length == null || actEffect.length <= 0) {
+												actMob.effects.splice(effect, 1);
+												effect--;
+											}
 										}
 									}
 									if (actMob.HP <= 0) {
@@ -849,12 +898,14 @@ function treatMsg(msg) {
 							for (player in rp[msg.channel].chars) {
 
 								var actChar = rp[msg.channel].chars[player];
-								if (actChar.MP < config.maxMP) {
+								if (actChar.MP < config.maxMP && actChar.HP > 0) {
 									actChar.MP += config.MP_recovery;
+									actChar.MP = Math.min(actChar.MP, config.maxMP);
 									players_text += "\r\n" + io.say(msg, "player_heal_MP", {name: actChar.name, amount: config.MP_recovery, now: Math.round(actChar.MP*10)/10});
 								}
-								if (actChar.HP < config.maxHP) {
+								if (actChar.HP < config.maxHP && actChar.HP > 0) {
 									actChar.HP += config.HP_recovery;
+									actChar.MP = Math.min(actChar.HP, config.maxHP);
 									players_text += "\r\n" + io.say(msg, "player_heal_HP", {name: actChar.name, amount: config.HP_recovery, now: Math.round(actChar.HP*10)/10});
 								}
 							}
