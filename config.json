@@ -180,6 +180,7 @@
 			"spell_success": "This spell worked like a charm!",
 			"mob_damage_fire": "`[[name]]` took [[damage]] damage from fire!",
 			"mob_died": "`[[name]]` died",
+			"mob_drops": "`[[name]]` dropped `[[object]]`",
 			"mob_suspended": "`[[name]]` tried to move, but couldn't.",
 			"player_heal_HP": "`[[name]]` healed [[amount]] HP, he/she has now: [[now]]",
 			"player_heal_MP": "`[[name]]` healed [[amount]] MP, he/she has now: [[now]]",
@@ -224,10 +225,11 @@
 	"actions_times": {
 		"give": 2,
 		"give_cheat": 0,
-		"hold": {"base": 2, "speed": 1},
+		"hold": {"base": 1.5, "speed": 1},
 		"eat": {"base": 4, "speed": 3.5, "speed_range": 20},
 		"turn": 1,
-		"attack": 2,
+		"attack": 1.5,
+		"attack_range": 4,
 		"wait": 2
 	}
 }

@@ -111,6 +111,7 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 						rp[msg.channel].objects.forEach((p, i) => {
 							if (p.name == o.values[0]) {
 								rp[msg.channel].room.items.push({id: i, quantity: 1});
+								text += "\r\n" + io.say(msg, "mob_drops", {name: mob_raw.name, object: rp[msg.channel].objects[i].name});
 							}
 						});
 					}

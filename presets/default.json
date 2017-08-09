@@ -45,8 +45,69 @@
       "DEF": 1
     },
     {
+      "name": "Corrupted guard",
+      "desc": "A guard that used to defend this place against the evil. He has been bought back to fight on the dark side",
+      "difficulty": 2,
+      "attrs": [
+        {"name": "xp_drop", "values": ["10", "15"]},
+        {"name": "item_drop", "values": ["Iron spear", "0.1"]}
+      ],
+      "inv": [],
+      "holding": "Iron spear",
+      "HP": [12, 16],
+      "ATK": 2
+    },
+    {
+      "name": "Orc",
+      "desc": "A big, greeny creature that eats any animal, including *you*.",
+      "difficulty": 3,
+      "attrs": [
+        {"name": "xp_drop", "values": ["12", "24"]},
+        {"name": "item_drop", "values": ["Orc tooth", "0.1"]},
+        {"name": "item_drop", "values": ["Rusty hammer", "0.2"]}
+      ],
+      "inv": [],
+      "holding": "Rusty hammer",
+      "HP": [26, 38],
+      "ATK": 6,
+      "DEF": 3
+    },
+    {
+      "name": "Orc leader",
+      "desc": "A leader of an Orc nation. He is more focused and more powerful than the usual Orc",
+      "difficulty": 5,
+      "attrs": [
+        {"name": "xp_drop", "values": ["16", "32"]},
+        {"name": "item_drop", "values": ["Orc tooth", "0.33"]},
+        {"name": "item_drop", "values": ["Orc bone", "0.8"]},
+        {"name": "item_drop", "values": ["Iron hammer", "0.2"]}
+      ],
+      "inv": [],
+      "holding": "Iron hammer",
+      "HP": [26, 38],
+      "ATK": 8,
+      "DEF": 4,
+      "VIT": 1,
+      "AGI": 1
+    },
+    {
+      "name": "Dark goblin Warrior",
+      "desc": "One of the terribles dark golbins warriors. His skin is purple and his eyes all black",
+      "difficulty": 4,
+      "attrs": [
+        {"name": "xp_drop", "values": ["12", "18"]},
+        {"name": "item_drop", "values": ["Dark Iron sword", "0.3"]}
+      ],
+      "inv": [],
+      "holding": "Dark Iron sword",
+      "HP": [8, 16],
+      "ATK": 5,
+      "DEF": 2,
+      "VIT": 2
+    },
+    {
       "name": "Cthulu",
-      "desc": "_*#^-:)/(:-^#*_*#^-:)/(:-^#*_",
+      "desc": "_*#^-:)'/%(-^£#*#^:/($^#*_",
       "attrs": [
         {"name": "xp_drop", "values": ["100", "400"]},
         {"name": "item_drop", "values": ["Eye of Cthulu", "1"]},
@@ -69,6 +130,18 @@
       "attrs": [
         {"name": "base_stat", "values": ["ATK", "2", "int"]},
         {"name": "base_stat", "values": ["VIT", "-1", "int"]}
+      ],
+      "difficulty": 1
+    },
+    {
+      "name": "Rusty hammer",
+      "desc": "A hammer made out of rusted iron. It isn't useful",
+      "class": "hammer",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "1", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-1", "int"]},
+        {"name": "base_stat", "values": ["DEF", "-1", "int"]}
       ],
       "difficulty": 1
     },
@@ -130,6 +203,17 @@
       "difficulty": 4
     },
     {
+      "name": "Dark Iron sword",
+      "desc": "A sword, which iron is totally dark, surrounded by a shadowy aura. It doesn't feel the same in your hand as a regular iron sword",
+      "class": "sword",
+      "subclass": "dark_var",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "5", "int"]},
+        {"name": "base_stat", "values": ["DEF", "5", "int"]},
+        {"name": "base_stat", "values": ["MGC", "-3", "int"]}
+      ]
+    },
+    {
       "name": "The edge of destiny",
       "desc": "A sword forged ages ago. It has seen more battles than you would ever dream of",
       "class": "sword",
@@ -140,6 +224,42 @@
         {"name": "base_stat", "values": ["VIT", "3", "int"]}
       ],
       "difficulty": 6
+    },
+    {
+      "name": "Wooden spear",
+      "desc": "A spear made out of wood, mostly used for training.",
+      "class": "spear",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "3", "int"]},
+        {"name": "base_stat", "values": ["VIT", "1", "int"]}
+      ],
+      "difficulty": 1
+    },
+    {
+      "name": "Iron spear",
+      "desc": "A spear with an iron end. It can quickly hit the enemy without you being hit",
+      "class": "spear",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "5", "int"]},
+        {"name": "base_stat", "values": ["VIT", "2", "int"]},
+        {"name": "base_stat", "values": ["DEF", "1", "int"]}
+      ]
+    },
+    {
+      "name": "Orc tooth",
+      "desc": "A big, grey tooth from an Orc",
+      "class": "ingredient",
+      "subclass": "weapon",
+      "attrs": []
+    },
+    {
+      "name": "Orc bone",
+      "desc": "A bone from an Orc leader",
+      "class": "ingredient",
+      "subclass": "weapon",
+      "attrs": []
     },
     {
       "name": "Soul of Cthulu",

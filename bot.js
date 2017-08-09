@@ -819,13 +819,8 @@ function treatMsg(msg) {
 						var actRoom = rp[msg.channel].room;
 						var targetId = Math.floor(utils.random(0, actRoom.entities.length));
 						if (commandParts[2] != undefined) {
-							for (mob in actRoom.entities) {
-								if (rp[msg.channel].mobs[actRoom.entities[mob].id].name == commandParts[3]) {
-									targetId = mob;
-									break;
-								}
-							}
-							targetId = +commandParts[3] || targetId;
+							var foundID = utils.getObjectID(utils.getIDMatchingObjects(actRoom.entities), commandParts[3]);
+							if (foundID != -1) targetId = foundID;
 						}
 						if (targetId != -1) {
 							var player_raw = rp[msg.channel].chars[msg.author];
@@ -835,7 +830,7 @@ function treatMsg(msg) {
 							if (player.VIT < 0) {
 								turn_amount += 1-player.VIT*combat.action_time(msg, "attack");
 							} else {
-								turn_amount += 1-utils.sigma(player.VIT/combat.action_time(msg, "attack"));
+								turn_amount += combat.action_time(msg, "attack")-utils.sigma(player.VIT/combat.action_time(msg, "attack_range"));
 							}
 							var text = combat.combat(msg, msg.author, targetId, false, true);
 							if (text != "") {
