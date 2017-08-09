@@ -34,5 +34,37 @@
         }
       ]
     }
+  ],
+  "objects": [
+    {
+      "name": "Weak Healing potion",
+      "desc": "A potion that will heal you 10 HP",
+      "class": "potion",
+      "subclass": "positive",
+      "attrs": [
+        {"name": "on_use", "values": ["select_holder", "inc_HP_capped(5)"]}
+      ],
+      "difficulty": 2
+    },
+    {
+      "name": "Medium Healing potion",
+      "desc": "A potion that will heal you 10 HP",
+      "class": "potion",
+      "subclass": "positive",
+      "attrs": [
+        {"name": "on_use", "values": ["select_holder", "inc_HP_capped(10)"]}
+      ],
+      "difficulty": 4
+    },
+    {
+      "name": "Strong Healing potion",
+      "desc": "A potion that will heal you 10 HP",
+      "class": "potion",
+      "subclass": "positive",
+      "attrs": [
+        {"name": "on_use", "values": ["select_holder", "inc_HP_capped(20)"]}
+      ],
+      "difficulty": 6
+    }
   ]
 }
