@@ -262,6 +262,11 @@ exports.displayRoom = function(msg) {
 							var item = rp[msg.channel].objects[actRoom.entities[i].holding];
 							if (item != undefined) string = string + " [" + item.name + "]";
 						}
+						if (Array.isArray(actRoom.entities[i].effects)) {
+							actRoom.entities[i].effects.forEach(o => {
+								string = string + " <" + o.name + ">";
+							});
+						}
 						string = string + "\r\n";
 					} else {
 						string = string + actRoom.entities[i].id;

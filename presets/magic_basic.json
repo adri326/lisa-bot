@@ -38,7 +38,7 @@
   "objects": [
     {
       "name": "Weak Healing potion",
-      "desc": "A potion that will heal you 10 HP",
+      "desc": "A potion that will heal you 5 HP",
       "class": "potion",
       "subclass": "positive",
       "attrs": [
@@ -58,7 +58,7 @@
     },
     {
       "name": "Strong Healing potion",
-      "desc": "A potion that will heal you 10 HP",
+      "desc": "A potion that will heal you 20 HP",
       "class": "potion",
       "subclass": "positive",
       "attrs": [

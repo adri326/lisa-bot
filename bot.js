@@ -889,7 +889,7 @@ function treatMsg(msg) {
 					if (turn_amount > 0) {
 						var turn_count = 0;
 
-						for (turn_count = 1; turn_amount >= 1 || utils.random(0, 1) < turn_amount && turn_amount > 0; turn_amount--, turn_count++) { // Loop back into turn_amount until it reaches a value below 1
+						for (turn_count = 1; turn_amount >= 1 || utils.random(0, +rp[msg.channel].turn_randomness) < turn_amount && turn_amount > 0; turn_amount--, turn_count++) { // Loop back into turn_amount until it reaches a value below 1
 							var mob_text = "", players_text = "", combat_text = "";
 							if (utils.require(msg, reqs.is_room | reqs.are_mobs_in_room | reqs.are_mobs, false)) {
 

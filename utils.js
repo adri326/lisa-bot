@@ -129,9 +129,9 @@ exports.getObjectID = function(obj_list, name, sub_obj_function = (key, index) =
 	var steps = [-1, -1, -1];
 	// Step 1: basic equal
 	// Step 2: more advanced (acronyms, wildcards...)
-
+	if (obj_list !== null && obj_list !== undefined)
 	obj_list.forEach((key, index) => {
-		if (sub_obj_function(key, index) && key.name !== null) {
+		if (sub_obj_function(key, index) && typeof(key.name) === "string" && typeof(name) === "string") {
 			if (key.name.toLowerCase() == name.toLowerCase() || key.id == name) {
 				steps[0] = index;
 			}

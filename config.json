@@ -19,7 +19,8 @@
 		"display_combat_text": true,
 		"display_noop": false,
 		"skill_points_per_level": 1,
-		"difficulty_increment": 0.04
+		"difficulty_increment": 0.04,
+		"turn_randomness": 0.25
 	},
 	"defaults": {
 		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
