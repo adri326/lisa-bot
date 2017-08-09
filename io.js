@@ -187,9 +187,11 @@ exports.displayInv = function(msg) {
 		if (actChar.inventory != undefined && actChar.inventory.length != 0) {
 			var string = "";
 			for (item in actChar.inventory) {
-				string = string + "\r\n" + module.exports.displayItem(msg, rp[msg.channel].objects[actChar.inventory[item].id]);
-				if (actChar.inventory[item].quantity != 1) {
-					string = string + " (" + actChar.inventory[item].quantity + "x)";
+				if (actChar.inventory[item] !== null) {
+					string = string + "\r\n" + module.exports.displayItem(msg, rp[msg.channel].objects[actChar.inventory[item].id]);
+					if (actChar.inventory[item].quantity != 1) {
+						string = string + " (" + actChar.inventory[item].quantity + "x)";
+					}
 				}
 			}
 			embed.fields.push({name: "Inventory", value: string});
@@ -278,10 +280,12 @@ exports.displayRoom = function(msg) {
 		if (actRoom.items !== undefined) {
 			if (actRoom.items.length > 0) {
 				for (i in actRoom.items) {
-					var parent = rp[msg.channel].objects[actRoom.items[i].id];
-					string = string + parent.name;
+					if (actRoom.items[i] !== null) {
+						var parent = rp[msg.channel].objects[actRoom.items[i].id];
+						string = string + parent.name;
 
-					string = string + "\r\n";
+						string = string + "\r\n";
+					}
 				}
 			}
 			else {

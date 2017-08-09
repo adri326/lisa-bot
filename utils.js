@@ -1,4 +1,5 @@
 const io = require("./io");
+const wildstring = require("wildstring");
 
 exports.require = function(msg, requirements = 0, display = true) {
 	if ((requirements & reqs.has_char) == reqs.has_char) {
@@ -116,21 +117,46 @@ exports.logMessage = function(msg) {
 	}
 }
 
-exports.getObjectID = function(obj_list, name) {
-	var foundId = -1;
-	if (typeof(name) == "string") {
-		if (name.startsWith("#")) {
-			return parseInt(name.slice(1));
-		}
+var reg_leading_chars = new RegExp(/(?:[^a-z]|^)([a-z])/, "gi");
+exports.leadingChars = function(string) {
+	var result = "";
+	string.match(reg_leading_chars).forEach(s => {
+		result += s.trim();
+	});
+	return result;
+}
+exports.getObjectID = function(obj_list, name, sub_obj_function = (key, index) => true) {
+	var steps = [-1, -1, -1];
+	// Step 1: basic equal
+	// Step 2: more advanced (acronyms, wildcards...)
 
-		for (i in obj_list) {
-			if (obj_list[i].name == name) {
-				foundId = i;
-				break;
+	obj_list.forEach((key, index) => {
+		if (sub_obj_function(key, index) && key.name !== null) {
+			if (key.name.toLowerCase() == name.toLowerCase() || key.id == name) {
+				steps[0] = index;
+			}
+			if (wildstring.match(name.toLowerCase(), key.name.toLowerCase())) {
+				steps[1] = index;
+			}
+			if (module.exports.leadingChars(key.name) === name) {
+				steps[2] = index;
 			}
 		}
+	});
+	for (s in steps) {
+		if (steps[s] > -1) {
+			return +steps[s];
+		}
 	}
-	return foundId;
+	return -1;
+}
+exports.getIDMatchingObjects = function(obj_list, id_list) {
+	var result = [];
+	id_list.forEach(o => {
+		if (o !== null)
+			result.push(obj_list[o.id]);
+	});
+	return result;
 }
 
 exports.createRP = function(msg) {
@@ -237,6 +263,9 @@ exports.execute_pseudocode = function(msg, code, match) {
 					selection.push(rp[msg.channel].chars[key]);
 				});
 				break;
+			case cmd == "select_holder":
+				selection = [rp[msg.channel].chars[msg.author]];
+				break;
 
 			// Relative selection
 			case cmd == "select_one_random":
@@ -290,6 +319,38 @@ exports.execute_pseudocode = function(msg, code, match) {
 					for (i in selection) {
 						if (selection.HP != undefined) {
 							selection.HP += +r[1] || 0;
+						}
+					}
+				}
+				break;
+			case (/^inc_HP_capped\(.*\)$/).test(cmd):
+				var r = reg_args.exec(cmd);
+				if (r !== null) {
+					for (i in selection) {
+						if (selection.HP != undefined) {
+							selection.HP += +r[1] || 0;
+							selection.HP = Math.min(selection.HP, config.maxHP);
+						}
+					}
+				}
+				break;
+			case (/^inc_MP\(.*\)$/).test(cmd):
+				var r = reg_args.exec(cmd);
+				if (r !== null) {
+					for (i in selection) {
+						if (selection.MP != undefined) {
+							selection.MP += +r[1] || 0;
+						}
+					}
+				}
+				break;
+			case (/^inc_MP_capped\(.*\)$/).test(cmd):
+				var r = reg_args.exec(cmd);
+				if (r !== null) {
+					for (i in selection) {
+						if (selection.MP != undefined) {
+							selection.MP += +r[1] || 0;
+							selection.MP = Math.min(selection.MP, config.maxMP);
 						}
 					}
 				}

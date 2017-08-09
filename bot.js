@@ -334,17 +334,11 @@ function treatMsg(msg) {
 					}
 					else if (commandParts[2] == "pick") {
 						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-							var pickable = null;
-							rp[msg.channel].room.items.forEach((o, i) => {
-								var actObj = rp[msg.channel].objects[o.id];
-								if (actObj.name == commandParts[3]) {
-									pickable = i;
-								}
-							});
-							if (pickable !== null) {
+							var pickable = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, rp[msg.channel].room.items), commandParts[3]);
+							if (pickable !== -1 && rp[msg.channel].room.items[pickable] !== null) {
 								rp[msg.channel].chars[msg.author].inventory.push(rp[msg.channel].room.items[pickable]);
+								utils.replyMessage(msg, io.say(msg, "item_pick_success", {name: rp[msg.channel].objects[rp[msg.channel].room.items[pickable].id].name}));
 								rp[msg.channel].room.items.splice(pickable, 1);
-								utils.replyMessage(msg, io.say(msg, "item_pick_success", {name: commandParts[3]}));
 							} else {
 								utils.replyMessage(msg, io.say(msg, "error_item_not_in_room"));
 							}
@@ -352,18 +346,13 @@ function treatMsg(msg) {
 					}
 					else if (commandParts[2] == "drop") {
 						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-							var pickable = null;
-							rp[msg.channel].chars[msg.author].inventory.forEach((o, i) => {
-								var actObj = rp[msg.channel].objects[o.id];
-								if (actObj.name == commandParts[3]) {
-									pickable = i;
-								}
-							});
-							if (pickable !== null) {
-								rp[msg.channel].room.items.push(rp[msg.channel].chars[msg.author].inventory[pickable]);
-								rp[msg.channel].chars[msg.author].inventory.splice(pickable, 1);
-								utils.replyMessage(msg, io.say(msg, "item_drop_success", {name: commandParts[3]}));
-							} else {
+							var foundID = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, rp[msg.channel].chars[msg.author].inventory), commandParts[3]);
+							if (foundID != -1) {
+								rp[msg.channel].room.items.push(rp[msg.channel].chars[msg.author].inventory[foundID]);
+								utils.replyMessage(msg, io.say(msg, "item_drop_success", {name: rp[msg.channel].objects[rp[msg.channel].chars[msg.author].inventory[foundID].id].name}));
+								rp[msg.channel].chars[msg.author].inventory.splice(foundID, 1);
+							}
+							else {
 								utils.replyMessage(msg, io.say(msg, "error_item_not_in_possession"));
 							}
 						}
@@ -486,6 +475,49 @@ function treatMsg(msg) {
 
 
 
+					}
+					else if (commandParts[2] == "tidy") {
+						var amount = 0;
+						Object.keys(rp[msg.channel].chars).forEach(o => {
+							var actChar = rp[msg.channel].chars[o];
+							for (item = 0; item < actChar.inventory.length; item++) {
+								var actItem = actChar.inventory[item];
+								if (actItem === null || actItem === undefined) {
+									actChar.inventory.splice(item, 1);
+									item--;
+									amount++;
+								} else {
+									if (actItem.id === null || actItem.id === undefined) {
+										actChar.inventory.splice(item, 1);
+										item--;
+										amount++;
+									} else {
+										if (actItem.quantity === null || actItem.quantity === undefined) {
+											actItem.quantity = 1;
+										}
+									}
+								}
+							}
+						});
+						for (item = 0; item < rp[msg.channel].room.items.length; item++) {
+							var actItem =  rp[msg.channel].room.items[item];
+							if (actItem === null || actItem === undefined) {
+								 rp[msg.channel].room.items.splice(item, 1);
+								 item--;
+								 amount++;
+							} else {
+								if (actItem.id === null || actItem.id === undefined) {
+									rp[msg.channel].room.items.splice(item, 1);
+									item--;
+									amount++;
+								} else {
+									if (actItem.quantity === null || actItem.quantity === undefined) {
+										actItem.quantity = 1;
+									}
+								}
+							}
+						}
+						utils.replyMessage(msg, io.say(msg, "admin_tidy_success", {n: amount}));
 					}
 					else if (config.settingList[commandParts[2]] != undefined) {
 
