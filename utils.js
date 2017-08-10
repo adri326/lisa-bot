@@ -198,13 +198,16 @@ exports.createRoom = function(msg) {
 		entities: [],
 		items: []
 	};
-	var mobCount = module.exports.random(Math.sqrt(difficulty), difficulty);
+	var mobCount = module.exports.random(1, Math.sqrt(difficulty)*rp[msg.channel].mob_mult);
 	for (i = 0; i < mobCount; i++) {
 		var found = false;
 		for (j = 0; j < mobCount && !found; j++) {
 			var n = Math.floor(Math.random() * rp[msg.channel].mobs.length);
 			var mob = rp[msg.channel].mobs[n];
-			if (mob.difficulty != undefined && mob.difficulty <= +difficulty) {
+			if (mob.difficulty != undefined &&
+				+mob.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty)) &&
+				+(mob.rate || 1) >= module.exports.random(0, 1)
+			) {
 				var HP = 0;
 				if (Array.isArray(rp[msg.channel].mobs[n].HP)) {
 					if (rp[msg.channel].mobs[n].HP.length == 2)
@@ -220,13 +223,17 @@ exports.createRoom = function(msg) {
 			}
 		}
 	}
-	var itemCount = module.exports.random(Math.sqrt(difficulty), difficulty);
+	var itemCount = module.exports.random(1, Math.sqrt(difficulty)*rp[msg.channel].item_mult);
 	for (i = 0; i < itemCount; i++) {
 		var found = false;
 		for (j = 0; j < itemCount && !found; j++) {
 			var targetId = Math.floor(module.exports.random(0, rp[msg.channel].objects.length));
 			var actObj = rp[msg.channel].objects[targetId];
-			if (actObj.difficulty != undefined && actObj.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty))) {
+			if (actObj.difficulty != undefined &&
+				+actObj.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty)) &&
+				+(actObj.max_difficulty || 100000) >= +difficulty &&
+				+(actObj.rate || 1) >= module.exports.random(0, 1)
+			) {
 				found = true;
 				var quantity = 1;
 				if (Array.isArray(actObj.spawn_quantity)) {
@@ -243,7 +250,7 @@ var reg_args = new RegExp("(?: *, *|\\()([a-zA-Z_\"0-9]*)", "g"); // Gives back 
 exports.execute_pseudocode = function(msg, code, match) {
 	var selection = [];
 	for (action in code) {
-		//console.log(code[action]);
+		console.log(code[action]);
 		var cmd = code[action];
 		switch (true) {
 			// Absolute selection
@@ -272,10 +279,10 @@ exports.execute_pseudocode = function(msg, code, match) {
 				selection = [selection[Math.floor(module.exports.random(0, selection.length))]];
 				break;
 			case (/^select_match_input\(.*\)$/).test(cmd):
-				var r = reg_args.exec(cmd);
+				var r = module.exports.find_args(cmd);
 				var newselection = [];
 				if (r !== null) {
-					var s = match[+r[1]+1];
+					var s = match[+r[0]+1];
 					if (s != undefined) {
 						for (i in selection) {
 							if (rp[msg.channel].room != undefined)
@@ -295,16 +302,16 @@ exports.execute_pseudocode = function(msg, code, match) {
 
 			// Action
 			case (/^give_effect\(.*\)$/).test(cmd):
-				var r = reg_args.exec(cmd);
+				var r = module.exports.find_args(cmd);
 				if (r !== null) {
 					for (i in selection) {
 						if (typeof(selection[i]) !== "undefined") {
 							if (selection[i].effects != undefined) {
-								var eid = module.exports.getObjectID(selection[i].effects, r[1]);
+								var eid = module.exports.getObjectID(selection[i].effects, r[0]);
 								if (eid != -1) {
-									selection[i].effects[eid].length = Math.max(selection[i].effects[eid].length, +r[2]);
+									selection[i].effects[eid].length = Math.max(selection[i].effects[eid].length, +r[1]);
 								} else {
-									selection[i].effects.push({name: r[1], length: +r[2]});
+									selection[i].effects.push({name: r[0], length: +r[1]});
 								}
 							}
 						}
@@ -314,50 +321,50 @@ exports.execute_pseudocode = function(msg, code, match) {
 				}
 				break;
 			case (/^inc_HP\(.*\)$/).test(cmd):
-				var r = reg_args.exec(cmd);
+				var r = module.exports.find_args(cmd);
 				if (r !== null) {
 					for (i in selection) {
-						if (selection.HP != undefined) {
-							selection.HP += +r[1] || 0;
+						if (selection[i].HP != undefined) {
+							selection[i].HP += +(r[0] || 0);
 						}
 					}
 				}
 				break;
 			case (/^inc_HP_capped\(.*\)$/).test(cmd):
-				var r = reg_args.exec(cmd);
+				var r = module.exports.find_args(cmd);
 				if (r !== null) {
 					for (i in selection) {
-						if (selection.HP != undefined) {
-							selection.HP += +r[1] || 0;
-							selection.HP = Math.min(selection.HP, config.maxHP);
+						if (selection[i].HP != undefined) {
+							selection[i].HP += +(r[0] || 0);
+							selection[i].HP = Math.min(selection[i].HP, config.maxHP);
 						}
 					}
 				}
 				break;
 			case (/^inc_MP\(.*\)$/).test(cmd):
-				var r = reg_args.exec(cmd);
+				var r = module.exports.find_args(cmd);
 				if (r !== null) {
 					for (i in selection) {
-						if (selection.MP != undefined) {
-							selection.MP += +r[1] || 0;
+						if (selection[i].MP != undefined) {
+							selection[i].MP += +(r[0] || 0);
 						}
 					}
 				}
 				break;
 			case (/^inc_MP_capped\(.*\)$/).test(cmd):
-				var r = reg_args.exec(cmd);
+				var r = module.exports.find_args(cmd);
 				if (r !== null) {
 					for (i in selection) {
-						if (selection.MP != undefined) {
-							selection.MP += +r[1] || 0;
-							selection.MP = Math.min(selection.MP, config.maxMP);
+						if (selection[i].MP != undefined) {
+							selection[i].MP += +(r[0] || 0);
+							selection[i].MP = Math.min(selection[i].MP, config.maxMP);
 						}
 					}
 				}
 				break;
 
 			case (/^summon\(.*\)$/).test(cmd):
-				var r = reg_args.exec(cmd);
+				var r = module.exports.find_args(cmd);
 				if (r !== null) {
 					var foundEntity = null;
 					rp[msg.channel].mobs.forEach((o, i) => {
@@ -377,4 +384,11 @@ exports.execute_pseudocode = function(msg, code, match) {
 		}
 	}
 	return true;
+}
+exports.find_args = function(string) {
+	var matches, output = [];
+	while (matches = reg_args.exec(string)) {
+		output.push(matches[1]);
+	}
+	return output;
 }

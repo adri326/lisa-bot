@@ -249,9 +249,19 @@ function treatMsg(msg) {
 						io.askSpecie(msg);
 
 					}
-					else if (commandParts[2] == null || commandParts[2].length == 0) {
+					else if (commandParts[2] == null || commandParts[2].length == 0 || commandParts[2] == "disp") {
 
-						io.displayChar(msg);
+						if (commandParts[3] == undefined || commandParts[3] === null) {
+							io.displayChar(msg, msg.author);
+						}
+						else {
+							for (player in rp[msg.channel].chars) {
+								if (rp[msg.channel].chars[player].name == commandParts[3]) {
+									io.displayChar(msg, player);
+									break;
+								}
+							}
+						}
 
 					}
 				}
@@ -306,26 +316,38 @@ function treatMsg(msg) {
 					else if (commandParts[2] == "hold") {
 						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
 							if (commandParts[3] != undefined) {
-								var objectInfo = utils.splitCommand(command.slice(11).trim());
-
-								var objectId = utils.getObjectID(rp[msg.channel].objects, objectInfo[0]);
+								var actChar = rp[msg.channel].chars[msg.author];
+								var objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), commandParts[3]);
 								if (objectId != -1) {
-									var actChar = rp[msg.channel].chars[msg.author];
-									var objectFound = false;
-									for (item in actChar.inventory) {
-										if (actChar.inventory[item].id == objectId) {
-											if (actChar.holding != -1 && actChar.holding != undefined)
-												actChar.inventory.push({id: actChar.holding, quantity: 1});
-											actChar.holding = objectId;
-											actChar.inventory.splice(item, 1);
-											utils.replyMessage(msg, "Successfully equiped the item "+objectInfo[0]);
-											turn_amount += combat.action_time(msg, "hold");
-											objectFound = true;
-											break;
-										}
+									if (actChar.holding != -1 && actChar.holding != undefined)
+										actChar.inventory.push({id: actChar.holding, quantity: 1});
+									actChar.holding = actChar.inventory[objectId].id;
+									actChar.inventory.splice(objectId, 1);
+									utils.replyMessage(msg, io.say(msg, "hold_success", {name: rp[msg.channel].objects[actChar.holding].name}));
+									turn_amount += combat.action_time(msg, "hold");
+								} else {
+									utils.replyMessage(msg, "Item not found!");
+								}
+							}
+						}
+					}
+					else if (commandParts[2] == "equip") {
+						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
+							if (commandParts[3] != undefined) {
+								var actChar = rp[msg.channel].chars[msg.author];
+								var objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), commandParts[3]);
+								if (objectId != -1) {
+									if (rp[msg.channel].objects[actChar.inventory[objectId].id].class == "armor") {
+										if (actChar.equipped != -1 && actChar.equipped != undefined)
+											actChar.inventory.push({id: actChar.equipped, quantity: 1});
+										actChar.equipped = actChar.inventory[objectId].id;
+										actChar.inventory.splice(objectId, 1);
+										utils.replyMessage(msg, io.say(msg, "equip_success", {name: rp[msg.channel].objects[actChar.equipped].name}));
+										turn_amount += combat.action_time(msg, "equip");
 									}
-									if (!objectFound)
-										utils.replyMessage(msg, "You don't have the item!");
+									else {
+										utils.replyMessage(msg, io.say(msg, "error_not_armor"));
+									}
 								} else {
 									utils.replyMessage(msg, "Item not found!");
 								}
@@ -607,7 +629,7 @@ function treatMsg(msg) {
 										}
 									}
 								}
-								if (commandParts[4] == "attrs") {
+								if (commandParts[5] == "attrs") {
 									string = string + "\r\n```json";
 									for (j in actSetting[i].attrs) {
 										string = string + "\r\n[" + j + "] " + actSetting[i].attrs[j].name;
@@ -819,7 +841,7 @@ function treatMsg(msg) {
 						var actRoom = rp[msg.channel].room;
 						var targetId = Math.floor(utils.random(0, actRoom.entities.length));
 						if (commandParts[2] != undefined) {
-							var foundID = utils.getObjectID(utils.getIDMatchingObjects(actRoom.entities), commandParts[3]);
+							var foundID = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].mobs, actRoom.entities), commandParts[2]);
 							if (foundID != -1) targetId = foundID;
 						}
 						if (targetId != -1) {
@@ -862,17 +884,43 @@ function treatMsg(msg) {
 					}
 				}
 				else if (commandParts[1] == "use") {
+					var holding = true;
 					var actChar = rp[msg.channel].chars[msg.author];
 					var actObj = rp[msg.channel].objects[actChar.holding];
+					var objectId = -1;
+					if (commandParts[2] != undefined && commandParts[2] !== null) {
+						objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), commandParts[2]);
+						if (objectId != -1) {
+							actObj = rp[msg.channel].objects[actChar.inventory[objectId].id];
+							holding = false;
+						}
+						else {
+							utils.replyMessage(msg, io.say(msg, "error_item_not_in_possession"));
+						}
+					}
+					var used = false;
 					actObj.attrs.forEach(a => {
+						console.log(CircularJSON.stringify(a));
 						if (a.name == "on_use") {
 							if (utils.execute_pseudocode(msg, a.values, [actObj.name])) {
-								actChar.holding = -1;
-								utils.replyMessage(msg, io.say(msg, "use_item_success", {name: actObj.name}));
+								used = true;
 							}
 						}
-						console.log(CircularJSON.stringify(a));
+
 					});
+					if (used) {
+						if (holding) {
+							actChar.holding = -1;
+						} else {
+							actChar.inventory.splice(objectId, 1);
+						}
+						utils.replyMessage(msg, io.say(msg, "use_item_success", {name: actObj.name}));
+						turn_amount += combat.action_time(msg, "use_" + actObj.class + "/" + actObj.subclass) ||
+							combat.action_time(msg, "use_" + actObj.class) ||
+							combat.action_time(msg, "use");
+					} else {
+						utils.replyMessage(msg, io.say(msg, "error_use_item"));
+					}
 				}
 
 				if (players_turn != "" && players_turn != undefined && players_turn !== null) {

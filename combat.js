@@ -70,9 +70,10 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 	var player_raw = rp[msg.channel].chars[playerID];
 	var player = {};
 	player.item = attrmgt.treat(rp[msg.channel].objects[player_raw.holding], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
-	player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0);
-	player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0);
-	player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0);
+	player.armor = attrmgt.treat(rp[msg.channel].objects[player_raw.equipped], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
+	player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0) + (player.armor.stats.ATK || 0);
+	player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0) + (player.armor.stats.DEF || 0);
+	player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0) + (player.armor.stats.VIT || 0);
 	//console.log(CircularJSON.stringify(player));
 	var mob_impl = actRoom.entities[mobID];
 	var mob_raw = rp[msg.channel].mobs[mob_impl.id];

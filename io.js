@@ -150,9 +150,9 @@ exports.askSpecie = function(msg) {
 }
 
 // NOTE: RED deprecated alert!
-exports.displayChar = function(msg) {
+exports.displayChar = function(msg, char) {
 	if (utils.require(msg, reqs.has_char | reqs.has_specie | reqs.has_class | reqs.are_classes | reqs.are_species)) {
-		var actChar = rp[msg.channel].chars[msg.author];
+		var actChar = rp[msg.channel].chars[char];
 		var embed = {color: config.colors.player,
 			author: {name: actChar.name, icon_url: msg.author.avatarURL},
 			fields: []};
@@ -205,6 +205,11 @@ exports.displayInv = function(msg) {
 			embed.fields.push({name: "Holding", value: "*Nothing*"});
 		} else {
 			embed.fields.push({name: "Holding", value: module.exports.displayItem(msg, rp[msg.channel].objects[actChar.holding])});
+		}
+		if (actChar.equipped == -1) {
+			embed.fields.push({name: "Equipped", value: "*Nothing*"});
+		} else {
+			embed.fields.push({name: "Equipped", value: module.exports.displayItem(msg, rp[msg.channel].objects[actChar.equipped])});
 		}
 		utils.replyMessage(msg, {embed: embed});
 	}
@@ -345,6 +350,11 @@ exports.loadRP = function() {
 							console.log(items[i] + ": char(" + x + ").holding");
 							problems++;
 						}
+						if (chan.chars[x].equipped === undefined) {
+							chan.chars[x].equipped = -1;
+							console.log(items[i] + ": char(" + x + ").equipped");
+							problems++;
+						}
 						if (chan.chars[x].xp === undefined || chan.chars[x].lvl === undefined) {
 							chan.chars[x].xp = 0;
 							chan.chars[x].lvl = 1;
@@ -354,6 +364,10 @@ exports.loadRP = function() {
 						if (chan.chars[x].skill_points === undefined) {
 							chan.chars[x].skill_points = 0;
 							console.log(items[i] + ": char(" + x + ").skill_points");
+						}
+						if (isNaN(chan.chars[x].MGC) || chan.chars[x].MGC === undefined || chan.chars[x].MGC === null) {
+							chan.chars[x].MGC = config.defaults.MGC;
+							console.log(items[i] + ": char(" + x + ").MGC");
 						}
 					}
 					for (item in config.settingList) {

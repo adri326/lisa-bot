@@ -15,7 +15,8 @@
       "holding": "",
       "HP": [6, 10],
       "ATK": 2,
-      "DEF": 1
+      "DEF": 1,
+      "rate": 0.8
     },
     {
       "name": "Possessed dwarf",
@@ -29,12 +30,13 @@
       "HP": [14, 20],
       "ATK": 4,
       "DEF": 3,
-      "VIT": 2
+      "VIT": 2,
+      "rate": 0.3
     },
     {
       "name": "Possessed armor",
       "desc": "An armor, which moves thanks black magic. Does it has a soul? Maybe not...",
-      "difficulty": 1,
+      "difficulty": 3,
       "attrs": [
         {"name": "xp_drop", "values": ["6", "8"]}
       ],
@@ -42,12 +44,13 @@
       "holding": "",
       "HP": [8, 12],
       "ATK": 3,
-      "DEF": 1
+      "DEF": 1,
+      "rate": 0.5
     },
     {
       "name": "Corrupted guard",
       "desc": "A guard that used to defend this place against the evil. He has been bought back to fight on the dark side",
-      "difficulty": 2,
+      "difficulty": 3,
       "attrs": [
         {"name": "xp_drop", "values": ["10", "15"]},
         {"name": "item_drop", "values": ["Iron spear", "0.1"]}
@@ -55,12 +58,13 @@
       "inv": [],
       "holding": "Iron spear",
       "HP": [12, 16],
-      "ATK": 2
+      "ATK": 2,
+      "rate": 0.9
     },
     {
       "name": "Orc",
       "desc": "A big, greeny creature that eats any animal, including *you*.",
-      "difficulty": 3,
+      "difficulty": 5,
       "attrs": [
         {"name": "xp_drop", "values": ["12", "24"]},
         {"name": "item_drop", "values": ["Orc tooth", "0.1"]},
@@ -70,12 +74,13 @@
       "holding": "Rusty hammer",
       "HP": [26, 38],
       "ATK": 6,
-      "DEF": 3
+      "DEF": 3,
+      "rate": 0.3
     },
     {
       "name": "Orc leader",
       "desc": "A leader of an Orc nation. He is more focused and more powerful than the usual Orc",
-      "difficulty": 5,
+      "difficulty": 7,
       "attrs": [
         {"name": "xp_drop", "values": ["16", "32"]},
         {"name": "item_drop", "values": ["Orc tooth", "0.33"]},
@@ -88,12 +93,13 @@
       "ATK": 8,
       "DEF": 4,
       "VIT": 1,
-      "AGI": 1
+      "AGI": 1,
+      "rate": 0.2
     },
     {
       "name": "Dark goblin Warrior",
       "desc": "One of the terribles dark golbins warriors. His skin is purple and his eyes all black",
-      "difficulty": 4,
+      "difficulty": 5,
       "attrs": [
         {"name": "xp_drop", "values": ["12", "18"]},
         {"name": "item_drop", "values": ["Dark Iron sword", "0.3"]}
@@ -103,7 +109,8 @@
       "HP": [8, 16],
       "ATK": 5,
       "DEF": 2,
-      "VIT": 2
+      "VIT": 2,
+      "rate": 0.8
     },
     {
       "name": "Cthulu",
@@ -119,6 +126,21 @@
       "ATK": 12,
       "DEF": 4,
       "VIT": 2
+    },
+    {
+      "name": "The Kraken",
+      "desc": "It moves quickly without any sound, and then drowns the entire boat",
+      "attrs": [
+        {"name": "xp_drop", "values": ["50", "100"]},
+        {"name": "item_drop", "values": ["Black ink", "0.75"]},
+        {"name": "item_drop", "values": ["Black ink", "0.5"]},
+        {"name": "item_drop", "values": ["Black ink", "0.25"]}
+      ],
+      "inv": [],
+      "holding": "",
+      "HP": 40,
+      "ATK": 7,
+      "DEF": 3
     }
   ],
   "objects": [
@@ -131,7 +153,9 @@
         {"name": "base_stat", "values": ["ATK", "2", "int"]},
         {"name": "base_stat", "values": ["VIT", "-1", "int"]}
       ],
-      "difficulty": 1
+      "difficulty": 1,
+      "rate": 0.5,
+      "max_difficulty": 2
     },
     {
       "name": "Rusty hammer",
@@ -143,7 +167,9 @@
         {"name": "base_stat", "values": ["VIT", "-1", "int"]},
         {"name": "base_stat", "values": ["DEF", "-1", "int"]}
       ],
-      "difficulty": 1
+      "difficulty": 1,
+      "rate": 0.2,
+      "max_difficulty": 2
     },
     {
       "name": "Iron hammer",
@@ -154,7 +180,22 @@
         {"name": "base_stat", "values": ["ATK", "4", "int"]},
         {"name": "base_stat", "values": ["VIT", "-2", "int"]}
       ],
-      "difficulty": 2
+      "difficulty": 2,
+      "rate": 0.4,
+      "max_difficulty": 3.5
+    },
+    {
+      "name": "Tempered steel hammer",
+      "desc": "A hammer made out of tempered steel. It is a rather slow and innacurate weapon",
+      "class": "hammer",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "6", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-2", "int"]}
+      ],
+      "difficulty": 3,
+      "rate": 0.3,
+      "max_difficulty": 6
     },
     {
       "name": "Magically reinforced Iron hammer",
@@ -162,11 +203,12 @@
       "class": "hammer",
       "subclass": "base",
       "attrs": [
-        {"name": "base_stat", "values": ["ATK", "6", "int"]},
+        {"name": "base_stat", "values": ["ATK", "7", "int"]},
         {"name": "base_stat", "values": ["DEF", "1", "int"]},
         {"name": "base_stat", "values": ["MGC", "3", "int"]}
       ],
-      "difficulty": 4
+      "difficulty": 4,
+      "rate": 0.5
     },
     {
       "name": "Wooden sword",
@@ -176,7 +218,9 @@
       "attrs": [
         {"name": "base_stat", "values": ["ATK", "2", "int"]}
       ],
-      "difficulty": 1
+      "difficulty": 1,
+      "rate": 0.5,
+      "max_difficulty": 2
     },
     {
       "name": "Iron sword",
@@ -187,7 +231,22 @@
         {"name": "base_stat", "values": ["ATK", "4", "int"]},
         {"name": "base_stat", "values": ["DEF", "1", "int"]}
       ],
-      "difficulty": 2
+      "difficulty": 2,
+      "rate": 0.7,
+      "max_difficulty": 3.5
+    },
+    {
+      "name": "Copper sword",
+      "desc": "A sword made out of copper. It is an average weapon",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "4", "int"]},
+        {"name": "base_stat", "values": ["DEF", "2", "int"]}
+      ],
+      "difficulty": 2,
+      "rate": 0.4,
+      "max_difficulty": 4
     },
     {
       "name": "Magically reinforced Iron sword",
@@ -200,7 +259,47 @@
         {"name": "base_stat", "values": ["MGC", "3", "int"]},
         {"name": "base_stat", "values": ["VIT", "2", "int"]}
       ],
-      "difficulty": 4
+      "difficulty": 4,
+      "rate": 0.3
+    },
+    {
+      "name": "Saphire incrusted sword",
+      "desc": "A sword made out of iron but incrusted with some saphire. Those saphire provides a blue glow around your hand",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "6", "int"]},
+        {"name": "base_stat", "values": ["DEF", "6", "int"]},
+        {"name": "base_stat", "values": ["MGC", "2", "int"]}
+      ],
+      "difficulty": 5,
+      "rate": 0.4
+    },
+    {
+      "name": "Adamantine sword",
+      "desc": "A sword made out of adamantine. Its orangered blade seems very sharp",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "9", "int"]},
+        {"name": "base_stat", "values": ["DEF", "4", "int"]},
+        {"name": "base_stat", "values": ["VIT", "1", "int"]}
+      ],
+      "difficulty": 5,
+      "rate": 0.4
+    },
+    {
+      "name": "Wulfenite cristal sword",
+      "desc": "A sword made out of an orange cristal, called Wulfenite. It is known to put the enemies on fire when you hit them",
+      "class": "sword",
+      "subclass": "effect",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "8", "int"]},
+        {"name": "base_stat", "values": ["DEF", "3", "int"]},
+        {"name": "on_hit", "values": ["select_attack_target", "give_effect(fire, 3)"]}
+      ],
+      "difficulty": 6,
+      "rate": 0.3
     },
     {
       "name": "Dark Iron sword",
@@ -223,7 +322,74 @@
         {"name": "base_stat", "values": ["DEF", "4", "int"]},
         {"name": "base_stat", "values": ["VIT", "3", "int"]}
       ],
-      "difficulty": 6
+      "difficulty": 6,
+      "rate": 0.2
+    },
+    {
+      "name": "Palladium sword",
+      "desc": "Palladium is a rare ore, found in the deep mines. This sword's blade is orange",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "12", "int"]},
+        {"name": "base_stat", "values": ["DEF", "4", "int"]},
+        {"name": "base_stat", "values": ["VIT", "3", "int"]}
+      ],
+      "difficulty": 8,
+      "rate": 0.4
+    },
+    {
+      "name": "Mythril sword",
+      "desc": "Mythril reflects light with a small green tint. This sword seems to be made out of diamond",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "14", "int"]},
+        {"name": "base_stat", "values": ["DEF", "4", "int"]},
+        {"name": "base_stat", "values": ["VIT", "3", "int"]}
+      ],
+      "difficulty": 9,
+      "rate": 0.3
+    },
+    {
+      "name": "Mythril-palladium alloy sword",
+      "desc": "This sword is made out of an extremely hard to create alloy. It took days to forge this sword, and you cannot see any imperfection in its yellow blade",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "16", "int"]},
+        {"name": "base_stat", "values": ["DEF", "4", "int"]},
+        {"name": "base_stat", "values": ["VIT", "3", "int"]}
+      ],
+      "difficulty": 12,
+      "rate": 0.15
+    },
+    {
+      "name": "Kaiburr-incrusted Mythril-Infinium alloy sword",
+      "desc": "This sword comes from another world. It is the result of a life-worth quest o gather all its materials",
+      "class": "sword",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "25", "int"]},
+        {"name": "base_stat", "values": ["DEF", "16", "int"]},
+        {"name": "base_stat", "values": ["VIT", "8", "int"]},
+        {"name": "base_stat", "values": ["MGC", "8", "int"]}
+      ],
+      "difficulty": 16,
+      "rate": 0.05
+    },
+    {
+      "name": "The power of the gods",
+      "desc": "THIS BELONGS TO ME. GIVE IT BACK TO ME!",
+      "class": "sword",
+      "subclass": "admin",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "100", "int"]},
+        {"name": "base_stat", "values": ["DEF", "100", "int"]},
+        {"name": "base_stat", "values": ["VIT", "100", "int"]}
+      ],
+      "max_difficulty": -100,
+      "rate": -1
     },
     {
       "name": "Wooden spear",
@@ -234,7 +400,9 @@
         {"name": "base_stat", "values": ["ATK", "3", "int"]},
         {"name": "base_stat", "values": ["VIT", "1", "int"]}
       ],
-      "difficulty": 1
+      "difficulty": 1,
+      "rate": 0.5,
+      "max_difficulty": 2
     },
     {
       "name": "Iron spear",
@@ -245,7 +413,24 @@
         {"name": "base_stat", "values": ["ATK", "5", "int"]},
         {"name": "base_stat", "values": ["VIT", "2", "int"]},
         {"name": "base_stat", "values": ["DEF", "1", "int"]}
-      ]
+      ],
+      "difficulty": 2,
+      "rate": 0.4,
+      "max_difficulty": 3.5
+    },
+    {
+      "name": "Emerald-incrusted spear",
+      "desc": "A spear with a steel end, incrusted with emerald. It can quickly hit the enemy without you being hit",
+      "class": "spear",
+      "subclass": "base",
+      "attrs": [
+        {"name": "base_stat", "values": ["ATK", "8", "int"]},
+        {"name": "base_stat", "values": ["VIT", "3", "int"]},
+        {"name": "base_stat", "values": ["DEF", "3", "int"]}
+      ],
+      "difficulty": 4,
+      "rate": 0.4,
+      "max_difficulty": 7
     },
     {
       "name": "Orc tooth",
@@ -262,6 +447,91 @@
       "attrs": []
     },
     {
+      "name": "Wooden armor",
+      "desc": "A helmet and a chestplate made out of wood. It is quite heavy",
+      "class": "armor",
+      "subclass": "set",
+      "attrs": [
+        {"name": "base_stat", "values": ["DEF", "2", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-1", "int"]}
+      ],
+      "difficulty": 1,
+      "max_difficulty": 3,
+      "rate": 0.8
+    },
+    {
+      "name": "Iron armor",
+      "desc": "A helmet and a chestplate made out of iron. It is very heavy",
+      "class": "armor",
+      "subclass": "set",
+      "attrs": [
+        {"name": "base_stat", "values": ["DEF", "4", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-2", "int"]}
+      ],
+      "difficulty": 2,
+      "rate": 0.6
+    },
+    {
+      "name": "Copper armor",
+      "desc": "A helmet and a chestplate made out of copper. It is quite heavy",
+      "class": "armor",
+      "subclass": "set",
+      "attrs": [
+        {"name": "base_stat", "values": ["DEF", "3", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-1", "int"]}
+      ],
+      "difficulty": 2,
+      "rate": 0.7
+    },
+    {
+      "name": "Aluminium armor",
+      "desc": "A helmet and a chestplate made out of aluminium. It is very heavy",
+      "class": "armor",
+      "subclass": "set",
+      "attrs": [
+        {"name": "base_stat", "values": ["DEF", "1", "int"]},
+        {"name": "base_stat", "values": ["VIT", "0", "int"]}
+      ],
+      "difficulty": 3,
+      "rate": 0.2
+    },
+    {
+      "name": "Chain armor",
+      "desc": "A helmet and a chestplate made out of a multitude of small chains, linked together. It is quite heavy but will protect you well",
+      "class": "armor",
+      "subclass": "set",
+      "attrs": [
+        {"name": "base_stat", "values": ["DEF", "5", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-1", "int"]}
+      ],
+      "difficulty": 6,
+      "rate": 0.5
+    },
+    {
+      "name": "Plate armor",
+      "desc": "A helmet and a chestplate made out of iron plates. It is very heavy but very effective",
+      "class": "armor",
+      "subclass": "set",
+      "attrs": [
+        {"name": "base_stat", "values": ["DEF", "7", "int"]},
+        {"name": "base_stat", "values": ["VIT", "-2", "int"]}
+      ],
+      "difficulty": 8,
+      "rate": 0.7
+    },
+    {
+      "name": "Mythril chain armor",
+      "desc": "A helmet and a chestplate made out of chains of mythril. It isn't heavy and give an incredible protection",
+      "class": "armor",
+      "subclass": "set",
+      "attrs": [
+        {"name": "base_stat", "values": ["DEF", "11", "int"]},
+        {"name": "base_stat", "values": ["VIT", "0", "int"]}
+      ],
+      "difficulty": 12,
+      "rate": 0.1
+    },
+    {
       "name": "Soul of Cthulu",
       "desc": "Invokes the Cthulu",
       "class": "invoker",
@@ -269,7 +539,19 @@
       "attrs": [
         {"name": "on_use", "values": ["summon(Cthulu)"]}
       ],
-      "difficulty": 8
+      "difficulty": 8,
+      "rate": 0.1
+    },
+    {
+      "name": "Boat in a bottle",
+      "desc": "Invokes the Kraken",
+      "class": "invoker",
+      "subclass": "boss",
+      "attrs": [
+        {"name": "on_use", "values": ["summon(The Kraken)"]}
+      ],
+      "difficulty": 6,
+      "rate": 0.2
     },
     {
       "name": "Eye of Cthulu",
@@ -278,6 +560,13 @@
       "subclass": "brewing",
       "attrs": [
       ]
+    },
+    {
+      "name": "Black ink",
+      "desc": "A black, sticky ink in a jar",
+      "class": "ingredient",
+      "subclass": "brewing",
+      "attrs": []
     }
   ]
 }
