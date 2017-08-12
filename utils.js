@@ -203,13 +203,17 @@ exports.createRoom = function(msg) {
 	var difficulty = rp[msg.channel].difficulty;
 	var room = {
 		entities: [],
-		items: []
+		items: [],
+		structures: [],
+		name: "Room"
 	};
 	var template = config.rooms[Math.floor(module.exports.random(1, config.rooms.length))];
-	if (module.exports.random(0, 1) > template.rate) { // Rate failed
-		template = config[0];
+	if (module.exports.random(0, 1) > (template.rate || 1) ||
+		rp[msg.channel].difficulty < (template.min_difficulty || 0) && rp[msg.channel].difficulty > (template.max_difficulty || 100000)) { // Test failed
+		template = config.rooms[0];
 	}
-	if (template.mobs) {
+	room.name = template.name || room.name;
+	if (template.mobs === true) {
 		var mobCount = module.exports.random(1, Math.sqrt(difficulty));
 		for (i = 0; i < mobCount; i++) {
 			var found = false;
@@ -220,23 +224,25 @@ exports.createRoom = function(msg) {
 					+mob.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty)) &&
 					+(mob.rate || 1) >= module.exports.random(0, 1)
 				) {
-					var HP = 0;
-					if (Array.isArray(rp[msg.channel].mobs[n].HP)) {
-						if (rp[msg.channel].mobs[n].HP.length == 2)
-							HP = module.exports.random(rp[msg.channel].mobs[n].HP[0], rp[msg.channel].mobs[n].HP[1]);
-						else {
-							HP = rp[msg.channel].mobs[n].HP[0];
-						}
-					} else {
-						HP = rp[msg.channel].mobs[n].HP;
-					}
-					room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, effects: [], holding: module.exports.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
+					module.exports.spawn_mob(msg, room, n);
 					found = true;
 				}
 			}
 		}
 	}
-	if (template.items) {
+	else if (Array.isArray(template.mobs)) {
+		template.mobs.forEach(o => {
+			if (typeof(o) == "string") {
+				module.exports.spawn_mob(msg, room, module.exports.getObjectID(rp[msg.channel].mobs, o));
+			}
+			else if (typeof(o) == "object") {
+				if (module.exports.random(0, 1) < (+o.rate || 1)) {
+					module.exports.spawn_mob(msg, room, module.exports.getObjectID(rp[msg.channel].mobs, o.name));
+				}
+			}
+		});
+	}
+	if (template.items === true) {
 		var itemCount = module.exports.random(1, Math.sqrt(difficulty));
 		for (i = 0; i < itemCount; i++) {
 			var found = false;
@@ -262,6 +268,20 @@ exports.createRoom = function(msg) {
 		room.structures.push(o);
 	});
 	return room;
+}
+
+exports.spawn_mob = function(msg, room, id) {
+	var HP = 0;
+	if (Array.isArray(rp[msg.channel].mobs[id].HP)) {
+		if (rp[msg.channel].mobs[id].HP.length == 2)
+			HP = module.exports.random(rp[msg.channel].mobs[id].HP[0], rp[msg.channel].mobs[id].HP[1]);
+		else {
+			HP = rp[msg.channel].mobs[id].HP[0];
+		}
+	} else {
+		HP = rp[msg.channel].mobs[id].HP;
+	}
+	room.entities.push({id: id, HP: HP, MP: rp[msg.channel].mobs[id].MP, effects: [], holding: module.exports.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[id].holding)});
 }
 
 var reg_args = new RegExp("(?: *, *|\\()([a-zA-Z_\"0-9]*)", "g"); // Gives back all the elements withing brackets: e.g "(a, 2)" will return ["(a, 2", "a", 2]
@@ -319,9 +339,13 @@ exports.execute_pseudocode = function(msg, code, match) {
 				break;
 
 			// Tests
-			case cdm == "if_room_cleared":
-				if (rp[msg.channel].room.mobs.length > 0) {
-					return false;
+			case cmd == "if_room_cleared":
+				if (rp[msg.channel].room != undefined) {
+					if (rp[msg.channel].room.mobs != undefined) {
+						if (rp[msg.channel].room.mobs.length > 0) {
+							return false;
+						}
+					}
 				}
 				break;
 
@@ -403,9 +427,9 @@ exports.execute_pseudocode = function(msg, code, match) {
 					}
 				}
 				break;
-			case "room_next" == cmd:
-				rp[msg.channel].room = utils.createRoom(msg);
-				utils.replyMessage(msg, "Moved to the next room!");
+			case cmd == "room_next":
+				rp[msg.channel].room = module.exports.createRoom(msg);
+				module.exports.replyMessage(msg, "Moved to the next room!");
 				io.displayRoom(msg);
 				combat.reset_turns(msg);
 				break;
@@ -413,7 +437,7 @@ exports.execute_pseudocode = function(msg, code, match) {
 				var r = module.exports.find_args(cmd);
 				rp[msg.channel].difficulty = (+rp[msg.channel].difficulty + +rp[msg.channel].difficulty_increment * +((r || [1])[0])) + "";
 				break;
-			case 'ressuscite_players' == cmd:
+			case cmd == 'ressuscite_players':
 				for (char in rp[msg.channel].chars) {
 					if (rp[msg.channel].chars[char].HP <= 0) {
 						rp[msg.channel].chars[char].HP = config.maxHP/2;

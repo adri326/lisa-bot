@@ -267,7 +267,7 @@
 			"name": "Stair room",
 			"mobs": true,
 			"items": false,
-			"rate": 0.1,
+			"rate": 0.2,
 			"structures": ["stairs"]
 		}
 	],

@@ -315,7 +315,7 @@ exports.displayRoom = function(msg) {
 		var actRoom = rp[msg.channel].room;
 		var embed = {
 			color: config.colors.dungeon,
-			title: "Room",
+			title: "Room: *" + (actRoom.name || "Default") + "*",
 			fields: []
 		};
 		var string = "";
