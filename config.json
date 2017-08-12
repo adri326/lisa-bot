@@ -8,6 +8,7 @@
 	"maxMP": 20,
 	"HP_recovery": 2,
 	"maxHP": 20,
+	"xp_mult": 50,
 	"printableSettings": {
 		"adventure_mode": "auto",
 		"admins": "-1",
@@ -22,7 +23,8 @@
 		"difficulty_increment": 0.04,
 		"turn_randomness": 0.25,
 		"item_mult": 3,
-		"mob_mult": 1
+		"mob_mult": 1,
+		"rp_shortcut": true
 	},
 	"defaults": {
 		"class": {"name": "Adventurer", "desc": "This class is the basic class, it hasn't any special attributes"},
@@ -97,7 +99,9 @@
 		"AGI",
 		"STR",
 		"HP",
-		"difficulty"
+		"difficulty",
+		"max_difficulty",
+		"rate"
 	],
 	"lang": {
 		"en": {
@@ -195,6 +199,15 @@
 			"use_item_success": "Successfully used the item `[[name]]`",
 			"hold_success": "Successfully holding the item `[[name]]`",
 			"equip_success": "Successfully equipped the item `[[name]]`",
+			"skill_assign_success": "Successfully assigned one point to the `[[name]]` stat!",
+			"use_structure": "**[[player]]** used `[[name]]`!",
+
+			"rarity": "Found when difficulty is higher than `[[min_difficulty]]`, but is best found when the difficulty is higher than `[[difficulty]]`. This item is [[rarity]].",
+			"rarity_max_difficulty": "Found when difficulty is higher than `[[min_difficulty]]`, is best found when the difficulty is higher than `[[difficulty]]` and lower than `[[max_difficulty]]`. This item is [[rarity]].",
+			"rarity_0": "**legendary**",
+			"rarity_1": "**rare**",
+			"rarity_2": "uncommon",
+			"rarity_3": "common",
 
 			"error_no_char": "I don't know you! First introduce you using `l!rp char create`",
 			"error_char_no_class": "You don't have any class? Assign yourself one using `l!rp char class`!",
@@ -216,6 +229,8 @@
 			"error_preset_not_found": "Sorry, I haven't found the preset you were looking for!",
 			"error_spell_not_found": "Nothing happened. Your spell doesn't seems to be working...",
 			"error_not_enough_MP": "You don't have any MP left! You should take a rest!",
+			"error_not_enough_skill_points": "You don't have any skill points left! Level up to get more!",
+			"error_stat_syntax": "This is not an available stat, sorry",
 			"error_dead": "Err... Sorry? Deads are dead, they can't do that!",
 			"error_item_not_in_room": "Sorry, I couldn't find the item you were looking for!",
 			"error_use_item": "Sorry, the item you were trying to use cannt be used that way!",
@@ -240,5 +255,28 @@
 		"wait": 2,
 		"use": 1,
 		"use_potion": 0.5
+	},
+	"rooms": [
+		{
+			"name": "Default",
+			"mobs": true,
+			"items": true,
+			"structures": []
+		},
+		{
+			"name": "Stair room",
+			"mobs": true,
+			"items": false,
+			"rate": 0.1,
+			"structures": ["stairs"]
+		}
+	],
+	"structures": {
+		"stairs": {
+			"name": "Stairs",
+			"desc": "Those stairs leads downwards. You cannot see where it leads",
+			"action": ["if_room_cleared", "difficulty_inc(5)", "room_next", "ressuscite_players"],
+			"vanish": false
+		}
 	}
 }

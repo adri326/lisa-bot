@@ -169,7 +169,7 @@ exports.displayChar = function(msg, char) {
 			}
 		}
 		embed.fields.push({name: "Statistics", value: stats});
-		var lxp = actChar.lvl * actChar.lvl * 100;
+		var lxp = utils.xp_per_level(actChar.lvl);
 		embed.fields.push({name: "Level " + actChar.lvl, value: "xp: " + Math.round(actChar.xp) + "/" + lxp});
 		embed.fields.push({name: "Skill points", value: actChar.skill_points + " points (" + rp[msg.channel].skill_points_per_level + " points per level)"});
 		utils.replyMessage(msg, {embed: embed});
@@ -247,6 +247,69 @@ exports.displayItem = function(msg, item, desc = false) {
 	}
 	return string;
 }
+exports.displayItemFancy = function(msg, item, holder) {
+	var embed = {
+		color: config.colors.dungeon,
+		title: item.name,
+		fields: []
+	};
+	if (item.desc != undefined) {
+		embed.fields.push({name: "Description", value: item.desc});
+	}
+	if (item.class != undefined) {
+		if (item.subclass != undefined) {
+			embed.fields.push({name: "Class", value: "@**" + item.class + "**/" + item.subclass});
+		}
+		else {
+			embed.fields.push({name: "Class", value: "@**" + item.class + "**"});
+		}
+	}
+	var holder_specie = rp[msg.channel].species[holder.specieId];
+	var holder_class = rp[msg.channel].classes[holder.classId];
+	var Titem = attrmgt.treat(item, holder_specie, holder_class);
+	var n = 0, stats = "";
+	for (stat in config.baseStats) {
+		if (Titem.stats[config.baseStats[stat]] != undefined) {
+			n++;
+			stats = stats + "**" + config.baseStats[stat] + "**: " + Math.round(Titem.stats[config.baseStats[stat]]*10)/10 + "\t";
+			if (n%3 == 0) {
+				stats = stats + "\r\n";
+			}
+		}
+	}
+	if (stats != "") {
+		embed.fields.push({name: "Statistics", value: stats});
+	}
+	if (item.difficulty != undefined) {
+		var rarity = Math.floor(+(item.rate || 1)*4-0.001);
+		if (item.max_difficulty != undefined) {
+			embed.fields.push({
+				name: "Rarity",
+				value: module.exports.say(msg,
+					"rarity_max_difficulty",
+					{
+						min_difficulty: Math.round(utils.inverse_difficulty(item.difficulty)*10)/10,
+						difficulty: item.difficulty,
+						max_difficulty: item.max_difficulty,
+						rarity: module.exports.say(msg, "rarity_" + rarity)
+					})
+			});
+		}
+		else {
+			embed.fields.push({
+				name: "Rarity",
+				value: module.exports.say(msg,
+					"rarity",
+					{
+						min_difficulty: Math.round(utils.inverse_difficulty(item.difficulty)*10)/10,
+						difficulty: item.difficulty,
+						rarity: module.exports.say(msg, "rarity_" + rarity)
+					})
+			});
+		}
+	}
+	return {embed: embed};
+}
 exports.displayRoom = function(msg) {
 	if (utils.require(msg, reqs.is_room | reqs.are_mobs | reqs.are_objects)) {
 		var actRoom = rp[msg.channel].room;
@@ -306,8 +369,47 @@ exports.displayRoom = function(msg) {
 			string = string + "*There is no item in this room* !";
 		}
 		embed.fields.push({name: "Items", value: string.toString()});
+		string = "";
+		if (actRoom.structures !== undefined) {
+			if (actRoom.structures.length > 0) {
+				for (s in actRoom.structures) {
+					var actStruct = config.structures[actRoom.structures[s]];
+					if (actStruct != undefined) {
+						string = string + "\r\n**" + actStruct.name + "**: " + actStruct.desc;
+					}
+				}
+			}
+			else {
+				string = string + "*There is no structure in this room* !";
+			}
+		}
+		else {
+			string = string + "*There is no structure in this room* !";
+		}
+		embed.fields.push({name: "Structures", value: string.toString()});
 		utils.replyMessage(msg, {embed: embed});
 	}
+}
+exports.displaySkills = function(msg, target) {
+	var actChar = rp[msg.channel].chars[target];
+	var embed = {
+		color: config.colors.player,
+		author: {name: "Skill points: " + actChar.name, icon_url: msg.author.avatarURL},
+		fields: []
+	};
+	var n = 0, stats = "";
+	config.baseStats.forEach(stat => {
+		if (stat != "HP" && stat != "MP") {
+			n++;
+			stats = stats + "**" + stat + "**: " + Math.round(actChar[stat]*10)/10 + "\t";
+			if (n%3 == 0) {
+				stats = stats + "\r\n";
+			}
+		}
+	});
+	embed.fields.push({"name": "Stats", "value": stats});
+	embed.fields.push({"name": "Points", "value": actChar.skill_points + " (" + rp[msg.channel].skill_points_per_level + " points per level)"});
+	utils.replyMessage(msg, {embed: embed});
 }
 
 exports.border = function(R, T, L, B) {

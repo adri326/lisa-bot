@@ -101,6 +101,12 @@ exports.random = function(a, b) {
 exports.sigma = function(a) {
 	return a/(1+Math.abs(a));
 }
+exports.xp_per_level = function(lvl) {
+	return Math.floor(Math.pow(lvl, 1.5) * config.xp_mult/10)*10;
+}
+exports.inverse_difficulty = function(difficulty) {
+	return 0.5 * (2 * difficulty + 1) - 0.5 * Math.sqrt(4 * difficulty + 1);
+}
 
 exports.replyMessage = function(msg, content) {
 	if (config._no_message !== true) {
@@ -178,6 +184,7 @@ exports.createChar = function(id, name) {
 		specieId: -1,
 		inventory: [],
 		holding: -1,
+		equipped: -1,
 		xp: 0,
 		lvl: 1,
 		skill_points: 0
@@ -198,51 +205,62 @@ exports.createRoom = function(msg) {
 		entities: [],
 		items: []
 	};
-	var mobCount = module.exports.random(1, Math.sqrt(difficulty)*rp[msg.channel].mob_mult);
-	for (i = 0; i < mobCount; i++) {
-		var found = false;
-		for (j = 0; j < mobCount && !found; j++) {
-			var n = Math.floor(Math.random() * rp[msg.channel].mobs.length);
-			var mob = rp[msg.channel].mobs[n];
-			if (mob.difficulty != undefined &&
-				+mob.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty)) &&
-				+(mob.rate || 1) >= module.exports.random(0, 1)
-			) {
-				var HP = 0;
-				if (Array.isArray(rp[msg.channel].mobs[n].HP)) {
-					if (rp[msg.channel].mobs[n].HP.length == 2)
-						HP = module.exports.random(rp[msg.channel].mobs[n].HP[0], rp[msg.channel].mobs[n].HP[1]);
-					else {
-						HP = rp[msg.channel].mobs[n].HP[0];
+	var template = config.rooms[Math.floor(module.exports.random(1, config.rooms.length))];
+	if (module.exports.random(0, 1) > template.rate) { // Rate failed
+		template = config[0];
+	}
+	if (template.mobs) {
+		var mobCount = module.exports.random(1, Math.sqrt(difficulty));
+		for (i = 0; i < mobCount; i++) {
+			var found = false;
+			for (j = 0; j < mobCount*rp[msg.channel].mob_mult && !found; j++) {
+				var n = Math.floor(Math.random() * rp[msg.channel].mobs.length);
+				var mob = rp[msg.channel].mobs[n];
+				if (mob.difficulty != undefined &&
+					+mob.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty)) &&
+					+(mob.rate || 1) >= module.exports.random(0, 1)
+				) {
+					var HP = 0;
+					if (Array.isArray(rp[msg.channel].mobs[n].HP)) {
+						if (rp[msg.channel].mobs[n].HP.length == 2)
+							HP = module.exports.random(rp[msg.channel].mobs[n].HP[0], rp[msg.channel].mobs[n].HP[1]);
+						else {
+							HP = rp[msg.channel].mobs[n].HP[0];
+						}
+					} else {
+						HP = rp[msg.channel].mobs[n].HP;
 					}
-				} else {
-					HP = rp[msg.channel].mobs[n].HP;
+					room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, effects: [], holding: module.exports.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
+					found = true;
 				}
-				room.entities.push({id: n, HP: HP, MP: rp[msg.channel].mobs[n].MP, effects: [], holding: module.exports.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[n].holding)});
-				found = true;
 			}
 		}
 	}
-	var itemCount = module.exports.random(1, Math.sqrt(difficulty)*rp[msg.channel].item_mult);
-	for (i = 0; i < itemCount; i++) {
-		var found = false;
-		for (j = 0; j < itemCount && !found; j++) {
-			var targetId = Math.floor(module.exports.random(0, rp[msg.channel].objects.length));
-			var actObj = rp[msg.channel].objects[targetId];
-			if (actObj.difficulty != undefined &&
-				+actObj.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty)) &&
-				+(actObj.max_difficulty || 100000) >= +difficulty &&
-				+(actObj.rate || 1) >= module.exports.random(0, 1)
-			) {
-				found = true;
-				var quantity = 1;
-				if (Array.isArray(actObj.spawn_quantity)) {
-					quantity = actObj.spawn_quantity[Math.floor(module.exports.random(0, actObj.spawn_quantity.length))];
+	if (template.items) {
+		var itemCount = module.exports.random(1, Math.sqrt(difficulty));
+		for (i = 0; i < itemCount; i++) {
+			var found = false;
+			for (j = 0; j < itemCount*rp[msg.channel].item_mult && !found; j++) {
+				var targetId = Math.floor(module.exports.random(0, rp[msg.channel].objects.length));
+				var actObj = rp[msg.channel].objects[targetId];
+				if (actObj.difficulty != undefined &&
+					+actObj.difficulty <= +difficulty + module.exports.random(0, Math.sqrt(difficulty)) &&
+					+(actObj.max_difficulty || 100000) >= +difficulty &&
+					+(actObj.rate || 1) >= module.exports.random(0, 1)
+				) {
+					found = true;
+					var quantity = 1;
+					if (Array.isArray(actObj.spawn_quantity)) {
+						quantity = actObj.spawn_quantity[Math.floor(module.exports.random(0, actObj.spawn_quantity.length))];
+					}
+					room.items.push({id: targetId, quantity: quantity});
 				}
-				room.items.push({id: targetId, quantity: quantity});
 			}
 		}
 	}
+	template.structures.forEach(o => {
+		room.structures.push(o);
+	});
 	return room;
 }
 
@@ -297,6 +315,13 @@ exports.execute_pseudocode = function(msg, code, match) {
 							}
 						}
 					}
+				}
+				break;
+
+			// Tests
+			case cdm == "if_room_cleared":
+				if (rp[msg.channel].room.mobs.length > 0) {
+					return false;
 				}
 				break;
 
@@ -375,6 +400,24 @@ exports.execute_pseudocode = function(msg, code, match) {
 					if (foundEntity !== null) {
 						var actMob = rp[msg.channel].mobs[foundEntity];
 						rp[msg.channel].room.entities.push({id: foundEntity, HP: actMob.HP});
+					}
+				}
+				break;
+			case "room_next" == cmd:
+				rp[msg.channel].room = utils.createRoom(msg);
+				utils.replyMessage(msg, "Moved to the next room!");
+				io.displayRoom(msg);
+				combat.reset_turns(msg);
+				break;
+			case (/^difficulty_inc\(.*\)$/).test(cmd):
+				var r = module.exports.find_args(cmd);
+				rp[msg.channel].difficulty = (+rp[msg.channel].difficulty + +rp[msg.channel].difficulty_increment * +((r || [1])[0])) + "";
+				break;
+			case 'ressuscite_players' == cmd:
+				for (char in rp[msg.channel].chars) {
+					if (rp[msg.channel].chars[char].HP <= 0) {
+						rp[msg.channel].chars[char].HP = config.maxHP/2;
+						rp[msg.channel].chars[char].xp = 0;
 					}
 				}
 				break;

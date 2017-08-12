@@ -130,6 +130,13 @@ bot.on("message", msg => {
 				channel: msg.channel.id,
 				guild: msg.channel.guild.id
 			};
+			if (rp[msg.channel.id] != undefined && rp[msg.channel.id] !== null) {
+				if (rp[msg.channel.id].rp_shortcut) {
+					if (msg_t.content.startsWith("!")) {
+						msg_t.content = msg_t.content.replace(/\!/, "l!rp ");
+					}
+				}
+			}
 			treatMsg(msg_t);
 		}
 		var end = new Date().getTime();
@@ -270,14 +277,8 @@ function treatMsg(msg) {
 						io.displayInv(msg);
 					}
 					else if (commandParts[2] == "desc") {
-						var arg = utils.splitCommand(command.slice(11, command.length));
-						//console.log(arg[0]);
-						for (i in rp[msg.channel].objects) {
-							if (arg[0] == rp[msg.channel].objects[i].name) {
-								utils.replyMessage(msg, io.displayItem(msg, rp[msg.channel].objects[i], true));
-								break;
-							}
-						}
+						var objectID = utils.getObjectID(rp[msg.channel].objects, commandParts[3]);
+						utils.replyMessage(msg, io.displayItemFancy(msg, rp[msg.channel].objects[objectID], rp[msg.channel].chars[msg.author]));
 					}
 					else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
 						turn_amount += combat.action_time(msg, "give_cheat");
@@ -380,6 +381,33 @@ function treatMsg(msg) {
 						}
 					}
 				}
+				else if (commandParts[1] == "skill" || commandParts[1] == "skills") {
+					if (commandParts[2] == undefined || commandParts[2] == "" || commandParts[2] === null || commandParts[2] == "disp") {
+						io.displaySkills(msg, msg.author);
+					}
+					else if (commandParts[2] == "assign") {
+						if (utils.require(msg, reqs.has_char)) {
+							var actChar = rp[msg.channel].chars[msg.author];
+							if (actChar.skill_points > 0) {
+								if (config.baseStats.includes(commandParts[3]) && commandParts[3] != "HP" && commandParts[3] != "MP" && actChar[commandParts[3]] != undefined) {
+									if (actChar[commandParts[3]] === null || isNaN(actChar[commandParts[3]])) {
+										actChar[commandParts[3]] = config.defaults[commandParts[3]] + 1;
+									}
+									else {
+										actChar[commandParts[3]]++;
+									}
+									utils.replyMessage(msg, io.say(msg, "skill_assign_success", {name: commandParts[3]}));
+								}
+								else {
+									utils.replyMessage(msg, io.say(msg, "error_stat_syntax"));
+								}
+							}
+							else {
+								utils.replyMessage(msg, io.say(msg, "error_not_enough_skill_points"));
+							}
+						}
+					}
+				}
 				else if (commandParts[1] == "room") {
 					if (commandParts[2] == undefined) {
 						io.displayRoom(msg);
@@ -410,6 +438,23 @@ function treatMsg(msg) {
 							rp[msg.channel].room = utils.createRoom(msg);
 							io.displayRoom(msg);
 							combat.reset_turns(msg);
+						}
+					}
+					else if (commandParts[2] == "use") {
+						var actRoom = rp[msg.channel].room;
+						for (s = 0; s < actRoom.structures.length; s++) {
+							var actStruct = config.structures[actRoom.structures[s]];
+							if (actStruct != undefined) {
+								if (actStruct.name.toLowerCase() == commandParts[3].toLowerCase()) {
+									players_text += io.say(msg, "use_structure", {name: actStruct.name, player: rp[msg.channel].chars[msg.author].name});
+									if (actStruct.vanish) {
+										actRoom.structures.splice(s, 1);
+										s--;
+									}
+									utils.execute_pseudocode(msg, actStruct.action);
+									break;
+								}
+							}
 						}
 					}
 				}
@@ -823,7 +868,7 @@ function treatMsg(msg) {
 								actChar = rp[msg.channel].chars[p];
 								actChar.xp = 0;
 								actChar.lvl++;
-								var lxp = actChar.lvl * actChar.lvl * 100;
+								var lxp = utils.xp_per_level(actChar.lvl);
 								text += "\r\n" + io.say(msg, "player_level_up", {name: actChar.name, level: actChar.lvl, xp: actChar.xp, maxxp: lxp});
 								var sub = combat.level_up_awards(msg, actChar);
 								if (sub != null) {
@@ -980,7 +1025,7 @@ function treatMsg(msg) {
 								}
 								if (actChar.HP < config.maxHP && actChar.HP > 0) {
 									actChar.HP += config.HP_recovery;
-									actChar.MP = Math.min(actChar.HP, config.maxHP);
+									actChar.HP = Math.min(actChar.HP, config.maxHP);
 									players_text += "\r\n" + io.say(msg, "player_heal_HP", {name: actChar.name, amount: config.HP_recovery, now: Math.round(actChar.HP*10)/10});
 								}
 							}

@@ -15,7 +15,7 @@ exports.hit = function(msg, someone) {
 exports.give_xp = function(msg, someone, amount, disp = false) {
 
 	someone.xp += amount;
-	var lxp = someone.lvl * someone.lvl * 100;
+	var lxp = utils.xp_per_level(someone.lvl);
 	var text = io.say(msg, "player_got_xp", {name: someone.name, level: someone.lvl, xp: Math.round(someone.xp*10)/10, maxxp: lxp, amount: Math.round(amount*10)/10});
 	if (someone.xp >= lxp) {
 		while (someone.xp >= lxp) {
