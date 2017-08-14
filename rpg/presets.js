@@ -1,7 +1,7 @@
 const fs = require("fs");
 const CircularJSON = require("circular-json");
-const utils = require("./utils");
-const io = require("./io");
+const utils = require("../utils");
+const io = require("../io");
 
 exports.loadPresets = function() {
 

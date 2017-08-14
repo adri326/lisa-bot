@@ -1,7 +1,7 @@
 var parent = module.parent;
 const utils = require("./utils");
-const attrmgt = require("./attrmgt");
-const specie = require("./specie");
+const attrmgt = require("./rpg/attrmgt");
+const specie = require("./rpg/specie");
 const fs = require("fs");
 const CircularJSON = require("circular-json");
 

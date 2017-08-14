@@ -1,5 +1,5 @@
-const utils = require("./utils");
-const io = require("./io");
+const utils = require("../utils");
+const io = require("../io");
 
 exports.findSpell = function(msg, string) {
   for (spell in rp[msg.channel].spells) {

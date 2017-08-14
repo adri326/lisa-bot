@@ -1,5 +1,5 @@
-var parent = module.parent;
-const utils = require("./utils");
+const utils = require("../utils");
+
 exports.applySpecieAttrs = function(msg, specieId) {
 	if (utils.require(msg, reqs.has_char | reqs.are_species)) {
 		var char = rp[msg.channel].chars[msg.author];

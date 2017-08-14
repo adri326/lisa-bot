@@ -1,6 +1,7 @@
-const utils = require("./utils");
-const io = require("./io");
-const combat = require("./combat");
+const path = require("path");
+const utils = require("../utils");
+const io = require("../io");
+const combat = require(path.join(__dirname, "/combat"));
 
 exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
   if (rp[msg.channel].chars[to] != undefined) {

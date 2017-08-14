@@ -1,6 +1,7 @@
-const utils = require("./utils");
-const io = require("./io");
-const attrmgt = require("./attrmgt");
+const path = require("path");
+const utils = require("../utils");
+const io = require("../io");
+const attrmgt = require(path.join(__dirname, "/attrmgt"));
 
 exports.hit = function(msg, someone) {
 	if (someone.inv != undefined && someone.inv != null) {
