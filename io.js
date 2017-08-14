@@ -10,7 +10,9 @@ exports.say = function(msg, msg_name, msg_info = {}) {
   if (string !== undefined) {
   	try {
   		if (string.indexOf("{{NAME}}")>-1) // Replace {{NAME}} by the author's character name TODO: add fallback on the user's pseudo
-  			string = string.replace("{{NAME}}", rp[msg.channel].chars[msg.author].name);
+  			string = string.replace("{{NAME}}", rp[msg.channel].chars[msg.author].name || msg.author_username);
+			if (string.indexOf("{{CHARS}}")>-1)
+				string = string.replace("{{CHARS}}", module.exports.listChars(msg));
   		if (string.indexOf("{{CLASSES}}")>-1) // Replace {{CLASSES}} by a list of the available classes
   			string = string.replace("{{CLASSES}}", module.exports.listClass(msg));
   		if (string.indexOf("{{SPECIES}}")>-1) // Replace {{SPECIES}} by a list of the available species
@@ -20,7 +22,6 @@ exports.say = function(msg, msg_name, msg_info = {}) {
   		if (string.indexOf("{{SPECIE}}")>-1) // Replace {{SPECIE}} by the specie of the character of the author
   			string = string.replace("{{SPECIE}}", rp[msg.channel].species[rp[msg.channel].chars[msg.author].specieId].name);
 			{
-
 				var s = 0, e = 0;
 				while (s > -1 && e > -1) {
 					if ((s = string.indexOf("[[")) > -1) { // Find the first brackets
@@ -76,6 +77,14 @@ exports.askChar = function(msg) {
   	});
   }
 };
+exports.listChars = function(msg) {
+	var chars = "";
+	for (i in rp[msg.channel].chars) {
+		var actchar = rp[msg.channel].chars[i];
+		chars = chars + "\r\n - " + actchar.name;
+	}
+	return chars;
+}
 exports.listClass = function(msg) {
 	var list = "";
 
@@ -485,6 +494,10 @@ exports.loadRP = function() {
 							console.log(items[i] + ": settings." + item);
 							problems++;
 						}
+					}
+					if (chan.turn_amount === undefined) {
+						chan.turn_amount = 0;
+						console.log(items[i] + ": turn_amount");
 					}
 					rp[chan.id] = chan;
 

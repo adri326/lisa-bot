@@ -108,12 +108,12 @@ exports.inverse_difficulty = function(difficulty) {
 	return 0.5 * (2 * difficulty + 1) - 0.5 * Math.sqrt(4 * difficulty + 1);
 }
 
-exports.replyMessage = function(msg, content) {
+exports.replyMessage = function(msg, content, additional = undefined) {
 	if (config._no_message !== true) {
 		// NOTE: Sends a message back
 		var guild = bot.guilds.get(msg.guild);// || bot.guilds.get(msg.guild.id);
 		if (guild!=undefined)
-			guild.channels.get(msg.channel).send(content);
+			guild.channels.get(msg.channel).send(content, additional);
 		//msg.channel.send(content);
 	}
 }
@@ -443,6 +443,22 @@ exports.execute_pseudocode = function(msg, code, match) {
 						rp[msg.channel].chars[char].HP = config.maxHP/2;
 						rp[msg.channel].chars[char].xp = 0;
 					}
+				}
+				break;
+			case (/^add_structure\(.*\)$/).test(cmd):
+				var r = module.exports.find_args(cmd);
+				if (r !== null) {
+					if (config.structures[r[0]] != undefined) {
+						if (Array.isArray(rp[msg.channel].room.structures)) {
+							rp[msg.channel].room.structures.push(r[0]);
+						}
+					}
+				}
+				break;
+			case (/^say\(.*\)$/).test(cmd):
+				var r = module.exports.find_args(cmd);
+				if (r !== null) {
+					module.exports.replyMessage(msg, io.say(r[0].trim()));
 				}
 				break;
 

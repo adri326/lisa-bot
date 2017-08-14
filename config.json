@@ -2,7 +2,7 @@
 	"admin": "238841636581277698",
 	"rpdir": "RP",
 	"presetsdir": "presets",
-	"itemsPerPage": 3,
+	"itemsPerPage": 4,
 	"maxBranchedCmds": 5,
 	"MP_recovery": 2,
 	"maxMP": 20,
@@ -201,6 +201,9 @@
 			"equip_success": "Successfully equipped the item `[[name]]`",
 			"skill_assign_success": "Successfully assigned one point to the `[[name]]` stat!",
 			"use_structure": "**[[player]]** used `[[name]]`!",
+			"list_chars": "Those are all the ones I know: {{CHARS}}",
+
+			"adventurers_well_success": "As you take a sip, all your wounds heals up!",
 
 			"rarity": "Found when difficulty is higher than `[[min_difficulty]]`, but is best found when the difficulty is higher than `[[difficulty]]`. This item is [[rarity]].",
 			"rarity_max_difficulty": "Found when difficulty is higher than `[[min_difficulty]]`, is best found when the difficulty is higher than `[[difficulty]]` and lower than `[[max_difficulty]]`. This item is [[rarity]].",
@@ -241,7 +244,9 @@
 		"player": 13869911,
 		"dungeon": 4619668,
 		"admin": 15987149,
-		"help": 15722699
+		"help": 15722699,
+		"error": 14233118,
+		"colors": 13477874
 	},
 	"actions_times": {
 		"give": 2,
@@ -269,6 +274,13 @@
 			"items": false,
 			"rate": 0.2,
 			"structures": ["stairs"]
+		},
+		{
+			"name": "Adventurer's well room",
+			"mobs": false,
+			"items": false,
+			"rate": 0.3,
+			"structures": ["adventurers_well"]
 		}
 	],
 	"structures": {
@@ -276,6 +288,18 @@
 			"name": "Stairs",
 			"desc": "Those stairs leads downwards. You cannot see where it leads",
 			"action": ["if_room_cleared", "difficulty_inc(5)", "room_next", "ressuscite_players"],
+			"vanish": false
+		},
+		"adventurers_well": {
+			"name": "Adventurer's well",
+			"desc": "Take a sip in this well to fully heal your wounds.",
+			"action": ["select_holder", "inc_HP_capped(50)", "add_structure(well)", "say(adventurers_well_success)"],
+			"vanish": true
+		},
+		"well": {
+			"name": "Well",
+			"desc": "A simple well. Its water looks clear",
+			"action": [],
 			"vanish": false
 		}
 	}

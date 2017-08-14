@@ -42,6 +42,8 @@ const specie = require("./specie");
 const combat = require("./combat");
 const presets_mod = require("./presets");
 const spells = require("./spells");
+const colors = require("./colors/colors.js")();
+//const colors = colors_mod();
 
 var onStartupTime = new Date().getTime();
 var onLoginTime, onLoadedTime;
@@ -120,7 +122,10 @@ bot.on("message", msg => {
 	//console.log(msg.content);
 	try {
 		var start = new Date().getTime();
-		var message_split = msg.content.split("\n") || msg.content;
+		var message_split = msg.content.split("\n") || [msg.content];
+		if (msg.content.startsWith("l!admin")) {
+			message_split = [msg.content];
+		}
 		for (msg_index = 0; msg_index < Math.min(config.maxBranchedCmds, message_split.length); msg_index++) { // Loop for every new-line (maximum is config.maxBranchedCmds times)
 			const msg_t = {
 				content: message_split[msg_index],
@@ -144,10 +149,10 @@ bot.on("message", msg => {
 			console.log(" " + (end-start) + "ms");
 	}
 	catch (err) {
-		utils.replyMessage(msg, {embed: {
-			color: 0x85171e,
-			title: err.constructor.toString(),
-			description: err.message
+		utils.replyMessage({channel: msg.channel.id, guild: msg.channel.guild.id}, {embed: {
+			title: "ERROR ERROR!",
+			color: config.colors.error,
+			description: err.toString()
 		}});
 		console.error(err);
 	}
@@ -188,6 +193,10 @@ function treatMsg(msg) {
 			utils.replyMessage(msg, {embed: Object.assign({}, data, {color: config.colors.help})});
 		}
 
+		if (command.startsWith("test")) {
+			// test
+		}
+
 		if (command.startsWith("admin")) {
 			if (msg.author == config.admin) {
 				if (commandParts[1] == "reload") {
@@ -205,71 +214,52 @@ function treatMsg(msg) {
 						}
 					}
 				}
+				else if (commandParts[1] == "eval") {
+					eval(command.split("```")[1]);
+				}
 			}
 		}
 
-		if (command.startsWith("RP") || command == "RP" || command.startsWith("rp") || command == "rp") {
-
+		if (command.toLowerCase().startsWith("rp")) {
 			if (rp[msg.channel] === null || rp[msg.channel] == undefined) {
 				// NOTE: Init RP if not done
 				initRP(msg);
-
 			}
-			/*else if (rp[msg.channel].id != msg.channel) {
-				utils.replyMessage(msg, "There was an error in the configuration!");
-				initRP(msg);
-			}*/
 			else {
 				var turns_embed = {
 					color: config.colors.dungeon,
 					fields: []
 				};
 				var players_turn = "";
-				var turn_amount;
 				if (rp[msg.channel].turn_type == 0) {
-					turn_amount = 0;
+					rp[msg.channel].turn_amount = 0;
 				}
 
 				if (commandParts[1] == "char") {
 					if (commandParts[2] == "create") {
-						// l!RP char create
-
 						io.askChar(msg);
 					}
 					else if (commandParts[2] == "list") {
-
-						var chars = "";
-						for (i in rp[msg.channel].chars) {
-							var actchar = rp[msg.channel].chars[i];
-							chars = chars + "\r\n - " + actchar.name;
-						}
-						utils.replyMessage(msg, "*Those are all the ones I've heard of* :"+chars);
-
+						utils.replyMessage(msg, io.say(msg, "list_chars"));
 					}
 					else if (commandParts[2] == "class") {
-
 						io.askClass(msg);
-
 					}
 					else if (commandParts[2] == "specie") {
-
 						io.askSpecie(msg);
-
 					}
 					else if (commandParts[2] == null || commandParts[2].length == 0 || commandParts[2] == "disp") {
-
 						if (commandParts[3] == undefined || commandParts[3] === null) {
 							io.displayChar(msg, msg.author);
 						}
 						else {
 							for (player in rp[msg.channel].chars) {
-								if (rp[msg.channel].chars[player].name == commandParts[3]) {
+								if (rp[msg.channel].chars[player].name.toLowerCase() == commandParts[3].toLowerCase()) {
 									io.displayChar(msg, player);
 									break;
 								}
 							}
 						}
-
 					}
 				}
 				else if (commandParts[1] == "inv") {
@@ -281,7 +271,7 @@ function treatMsg(msg) {
 						utils.replyMessage(msg, io.displayItemFancy(msg, rp[msg.channel].objects[objectID], rp[msg.channel].chars[msg.author]));
 					}
 					else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
-						turn_amount += combat.action_time(msg, "give_cheat");
+						rp[msg.channel].turn_amount += combat.action_time(msg, "give_cheat");
 						if (commandParts[3] == "self" && canCheat(msg)) {
 							var objectInfo = utils.splitCommand(command.slice(17));
 							var objectId = utils.getObjectID(rp[msg.channel].objects, objectInfo[0]);
@@ -305,55 +295,20 @@ function treatMsg(msg) {
 								}
 								if (inv.give(msg, msg.author, player, commandParts[4], commandParts[5], commandParts[2]=="cgive")) {
 									if (commandParts[2] == "cgive") {
-										turn_amount += combat.action_time(msg, "give_cheat");
+										rp[msg.channel].turn_amount += combat.action_time(msg, "give_cheat");
 									}
 									else {
-										turn_amount += combat.action_time(msg, "give");
+										rp[msg.channel].turn_amount += combat.action_time(msg, "give");
 									}
 								}
 							}
 						}
 					}
 					else if (commandParts[2] == "hold") {
-						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-							if (commandParts[3] != undefined) {
-								var actChar = rp[msg.channel].chars[msg.author];
-								var objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), commandParts[3]);
-								if (objectId != -1) {
-									if (actChar.holding != -1 && actChar.holding != undefined)
-										actChar.inventory.push({id: actChar.holding, quantity: 1});
-									actChar.holding = actChar.inventory[objectId].id;
-									actChar.inventory.splice(objectId, 1);
-									utils.replyMessage(msg, io.say(msg, "hold_success", {name: rp[msg.channel].objects[actChar.holding].name}));
-									turn_amount += combat.action_time(msg, "hold");
-								} else {
-									utils.replyMessage(msg, "Item not found!");
-								}
-							}
-						}
+						inv.hold(msg, commandParts[3]);
 					}
 					else if (commandParts[2] == "equip") {
-						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-							if (commandParts[3] != undefined) {
-								var actChar = rp[msg.channel].chars[msg.author];
-								var objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), commandParts[3]);
-								if (objectId != -1) {
-									if (rp[msg.channel].objects[actChar.inventory[objectId].id].class == "armor") {
-										if (actChar.equipped != -1 && actChar.equipped != undefined)
-											actChar.inventory.push({id: actChar.equipped, quantity: 1});
-										actChar.equipped = actChar.inventory[objectId].id;
-										actChar.inventory.splice(objectId, 1);
-										utils.replyMessage(msg, io.say(msg, "equip_success", {name: rp[msg.channel].objects[actChar.equipped].name}));
-										turn_amount += combat.action_time(msg, "equip");
-									}
-									else {
-										utils.replyMessage(msg, io.say(msg, "error_not_armor"));
-									}
-								} else {
-									utils.replyMessage(msg, "Item not found!");
-								}
-							}
-						}
+						inv.equip(msg, commandParts[3]);
 					}
 					else if (commandParts[2] == "pick") {
 						if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
@@ -838,7 +793,7 @@ function treatMsg(msg) {
 						}
 					}
 					else if (commandParts[2] == "turn") {
-						turn_amount += combat.action_time(msg, "turn");
+						rp[msg.channel].turn_amount += combat.action_time(msg, "turn");
 						replyMessage(msg, say(msg, "admin_turn_success"));
 					}
 					else if (commandParts[2] == "reinit") {
@@ -879,6 +834,23 @@ function treatMsg(msg) {
 						);
 						utils.replyMessage(msg, {embed: embed});
 					}
+					else if (commandParts[2] == "room") {
+						if (commandParts[3] == "next") {
+							rp[msg.channel].room = utils.createRoom(msg);
+							utils.replyMessage(msg, "Moved to the next room!");
+							io.displayRoom(msg);
+							combat.reset_turns(msg);
+						}
+						else if (commandParts[3] == "add") {
+							if (commandParts[4] == "structure") {
+								if (commandParts[5] != undefined && commandParts[5] != "") {
+									if (Array.isArray(rp[msg.channel].room.structures)) {
+										rp[msg.channel].room.structures.push(commandParts[5]);
+									}
+								}
+							}
+						}
+					}
 				}
 				else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
 					if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room | reqs.is_alive)) {
@@ -895,9 +867,9 @@ function treatMsg(msg) {
 							player.item = attrmgt.treat(rp[msg.channel].objects[player_raw.holding], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
 							player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0);
 							if (player.VIT < 0) {
-								turn_amount += 1-player.VIT*combat.action_time(msg, "attack");
+								rp[msg.channel].turn_amount += 1-player.VIT*combat.action_time(msg, "attack");
 							} else {
-								turn_amount += combat.action_time(msg, "attack")-utils.sigma(player.VIT/combat.action_time(msg, "attack_range"));
+								rp[msg.channel].turn_amount += combat.action_time(msg, "attack")-utils.sigma(player.VIT/combat.action_time(msg, "attack_range"));
 							}
 							var text = combat.combat(msg, msg.author, targetId, false, true);
 							if (text != "") {
@@ -910,7 +882,7 @@ function treatMsg(msg) {
 				}
 				else if (commandParts[1] == "wait") {
 					if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-						turn_amount += combat.action_time(msg, "wait");
+						rp[msg.channel].turn_amount += combat.action_time(msg, "wait");
 					}
 				}
 				else if (commandParts[1] == "spell") {
@@ -960,7 +932,7 @@ function treatMsg(msg) {
 							actChar.inventory.splice(objectId, 1);
 						}
 						utils.replyMessage(msg, io.say(msg, "use_item_success", {name: actObj.name}));
-						turn_amount += combat.action_time(msg, "use_" + actObj.class + "/" + actObj.subclass) ||
+						rp[msg.channel].turn_amount += combat.action_time(msg, "use_" + actObj.class + "/" + actObj.subclass) ||
 							combat.action_time(msg, "use_" + actObj.class) ||
 							combat.action_time(msg, "use");
 					} else {
@@ -974,10 +946,10 @@ function treatMsg(msg) {
 
 				if (rp[msg.channel] != undefined)
 				if (rp[msg.channel].turn_type == 0) {
-					if (turn_amount > 0) {
+					if (rp[msg.channel].turn_amount > 0) {
 						var turn_count = 0;
 
-						for (turn_count = 1; turn_amount >= 1 || utils.random(0, +rp[msg.channel].turn_randomness) < turn_amount && turn_amount > 0; turn_amount--, turn_count++) { // Loop back into turn_amount until it reaches a value below 1
+						for (turn_count = 1; rp[msg.channel].turn_amount >= 1 || utils.random(0, +rp[msg.channel].turn_randomness) < rp[msg.channel].turn_amount && rp[msg.channel].turn_amount > 0; rp[msg.channel].turn_amount--, turn_count++) { // Loop back into rp[msg.channel].turn_amount until it reaches a value below 1
 							var mob_text = "", players_text = "", combat_text = "";
 							if (utils.require(msg, reqs.is_room | reqs.are_mobs_in_room | reqs.are_mobs, false)) {
 
@@ -1047,9 +1019,9 @@ function treatMsg(msg) {
 							}
 
 						}
-						/*if (turn_amount > 0) {
+						/*if (rp[msg.channel].turn_amount > 0) {
 							turn_count++;
-							if (utils.random(0, 1)>turn_amount) {
+							if (utils.random(0, 1)>rp[msg.channel].turn_amount) {
 								var targetId = Math.floor(utils.random(0, actRoom.entities.length));
 								turns_embed.fields.push({name: "Turn " + turn_count, value: combat.mob_action(msg, targetId)});
 							}
@@ -1064,6 +1036,57 @@ function treatMsg(msg) {
 						title: "Nothing happenned",
 						color: config.colors.dungeon
 					}})
+				}
+			}
+		}
+		else if (command.toLowerCase().startsWith("col")) {
+			if (commandParts[1] == "list") {
+				var setID = utils.getObjectID(colors, commandParts[2]);
+				if (commandParts[2] == undefined || colorID == -1) {
+					var mpages = Math.ceil(colors.length/config.itemsPerPage),
+					page = Math.max(Math.min(+(commandParts[2] || 1), mpages), 1);
+					var embed = {
+						color: config.colors.colors,
+						title: ("List of my handful colors (page " + page + "/" + mpages + ")"),
+						description: "Those are all colors that I took from my environment, feel free to use them. You don't need to credit me, but I'd be very happy if you do!",
+						fields: []
+					};
+					for (i = (page-1)*config.itemsPerPage; i < Math.min((page)*config.itemsPerPage, colors.length); i++) {
+						embed.fields.push({name: colors[i].name || "*Unnamed*", value: colors[i].desc || "*No description given*"});
+					}
+					utils.replyMessage(msg, {embed: embed});
+				}
+				else if (setID > -1) {
+					var colorID = utils.getObjectID(colors[setID].sets, commandParts[3]);
+					if (colorID == -1) {
+						var mpages = Math.ceil(colors[setID].sets.length/config.itemsPerPage),
+						page = Math.max(Math.min(+(commandParts[3] || 1), mpages), 1);
+						var embed = {
+							color: config.colors.colors,
+							title: ("List of my handful colors in " + colors[setID].name + " (page " + page + "/" + mpages + ")"),
+							description: colors[setID].desc,
+							fields: []
+						};
+						for (i = (page-1)*config.itemsPerPage; i < Math.min((page)*config.itemsPerPage, colors[setID].sets.length); i++) {
+							embed.fields.push({name: colors[setID].sets[i].name || "*Unnamed*", value: colors[setID].sets[i].desc || "*No description given*"});
+						}
+						utils.replyMessage(msg, {embed: embed});
+					}
+					else if (colorID > -1) {
+						var mpages = Math.ceil(colors[setID].sets[colorID].colors.length/config.itemsPerPage),
+						page = Math.max(Math.min(+(commandParts[4] || 1), mpages), 1);
+						var embed = {
+							color: config.colors.colors,
+							title: ("List of my handful colors in " + colors[setID].name + "/" + colors[setID].sets[colorID].name + " (page " + page + "/" + mpages + ")"),
+							description: colors[setID].sets[colorID].desc,
+							fields: []
+						};
+						for (i = (page-1)*config.itemsPerPage; i < Math.min((page)*config.itemsPerPage, colors[setID].sets[colorID].colors.length); i++) {
+							var actColor = colors[setID].sets[colorID].colors[i];
+							embed.fields.push({name: colors.parse(actColor).html, value: colors.display(actColor)});
+						}
+						utils.replyMessage(msg, {embed: embed});
+					}
 				}
 			}
 		}
