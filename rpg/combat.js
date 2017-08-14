@@ -29,6 +29,20 @@ exports.give_xp = function(msg, someone, amount, disp = false) {
 			text += "\r\n" + io.say(msg, "player_level_up", {name: someone.name, level: someone.lvl, xp: Math.round(someone.xp*10)/10, maxxp: lxp})
 		}
 	}
+	[someone.holding, someone.equipped].forEach(child => {
+		var object = rp[msg.channel].objects[child.id];
+		if (child.level < object.maxlevel || 1) {
+			child.xp += amount;
+			var lxp = object.xp_per_level || config.defaults.object_xp_per_level;
+			while (child.xp >= lxp) {
+				if (child.level < object.maxlevel) {
+					child.level++;
+					text += "\r\n" + io.say(msg, "object_level_up", {name: object.name, holder: someone.name});
+				}
+				child.xp -= lxp;
+			}
+		}
+	});
 
 	if (disp) {
 		utils.replyMessage(msg, text);
@@ -64,14 +78,35 @@ exports.reset_turns = function(msg) {
 
 }
 
+exports.calc_item_stats = function(msg, id, level) {
+	var object = rp[msg.channel].objects[id];
+	if (object != undefined) {
+		var output = {
+			name: object.name,
+			desc: object.desc,
+			class: object.class,
+			subclass: object.subclass,
+			attrs: object.attrs.map(item => item),
+			level: level,
+			maxlevel: object.maxlevel
+		};
+		if (typeof(object.levels_affect) === "object") {
+			Object.keys(object.levels_affect).forEach(o => {
+				output.attrs.push({name: "stat_add", values: [o, +object.levels_affect[o] * (level-1)]});
+			});
+		}
+		return output;
+	}
+}
+
 exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = true) {
 	var text = "";
 
 	var actRoom = rp[msg.channel].room;
 	var player_raw = rp[msg.channel].chars[playerID];
 	var player = {};
-	player.item = attrmgt.treat(rp[msg.channel].objects[player_raw.holding], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
-	player.armor = attrmgt.treat(rp[msg.channel].objects[player_raw.equipped], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
+	player.item = attrmgt.treat(module.exports.calc_item_stats(msg, player_raw.holding.id, player_raw.holding.level), rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
+	player.armor = attrmgt.treat(module.exports.calc_item_stats(msg, player_raw.equipped.id, player_raw.equipped.level), rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
 	player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0) + (player.armor.stats.ATK || 0);
 	player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0) + (player.armor.stats.DEF || 0);
 	player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0) + (player.armor.stats.VIT || 0);
@@ -79,7 +114,7 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 	var mob_impl = actRoom.entities[mobID];
 	var mob_raw = rp[msg.channel].mobs[mob_impl.id];
 	var mob = {};
-	mob.item = attrmgt.treat(rp[msg.channel].objects[mob_impl.holding], rp[msg.channel].species[mob_raw.specieId | -1], rp[msg.channel].classes[mob_raw.classId | -1]);
+	mob.item = attrmgt.treat(module.exports.calc_item_stats(msg, mob_impl.holding.id, mob_impl.holding.level), rp[msg.channel].species[mob_raw.specieId | -1], rp[msg.channel].classes[mob_raw.classId | -1]);
 	mob.ATK = (mob.item.stats.ATK || 0) + (mob_raw.ATK || 0);
 	mob.DEF = (mob.item.stats.DEF || 0) + (mob_raw.DEF || 0);
 	//console.log(CircularJSON.stringify(mob));

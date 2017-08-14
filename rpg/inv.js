@@ -7,6 +7,8 @@ exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
   if (rp[msg.channel].chars[to] != undefined) {
     quantity = parseInt(_quantity | "1");
     var objectId = utils.getObjectID(rp[msg.channel].objects, item);
+    var level = 1;
+    var xp = 0;
     if (objectId != -1) {
       var canGive = true;
       if (!cheat) {
@@ -14,6 +16,8 @@ exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
         var actChar = rp[msg.channel].chars[from];
         for (item in actChar.inventory) {
           if (actChar.inventory[item].id == objectId) {
+            level = actChar.inventory[item].level || level;
+            xp = actChar.inventory[item].xp || xp;
             if (actChar.inventory[item].quantity < quantity) {
               actChar.inventory[item].quantity -= quantity;
               canGive = true;
@@ -26,7 +30,7 @@ exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
         }
       }
       if (canGive) {
-        rp[msg.channel].chars[to].inventory.push({id: objectId, quantity: quantity});
+        rp[msg.channel].chars[to].inventory.push({id: objectId, quantity: quantity, level: level});
         utils.replyMessage(msg, "Successully gave item to " + rp[msg.channel].chars[to].name + "!");
         return true;
       } else {
@@ -54,8 +58,8 @@ exports.hold = function(msg, item = "") {
     var objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), item);
     if (objectId != -1) {
       if (actChar.holding != -1 && actChar.holding != undefined)
-        actChar.inventory.push({id: actChar.holding, quantity: 1});
-      actChar.holding = actChar.inventory[objectId].id;
+        actChar.inventory.push(actChar.holding);
+      actChar.holding = actChar.inventory[objectId];
       actChar.inventory.splice(objectId, 1);
       utils.replyMessage(msg, io.say(msg, "hold_success", {name: rp[msg.channel].objects[actChar.holding].name}));
       rp[msg.channel].turn_amount += combat.action_time(msg, "hold");
@@ -71,8 +75,8 @@ exports.equip = function(msg, item = "") {
     if (objectId != -1) {
       if (rp[msg.channel].objects[actChar.inventory[objectId].id].class == "armor") {
         if (actChar.equipped != -1 && actChar.equipped != undefined)
-          actChar.inventory.push({id: actChar.equipped, quantity: 1});
-        actChar.equipped = actChar.inventory[objectId].id;
+          actChar.inventory.push(actChar.equipped);
+        actChar.equipped = actChar.inventory[objectId];
         actChar.inventory.splice(objectId, 1);
         utils.replyMessage(msg, io.say(msg, "equip_success", {name: rp[msg.channel].objects[actChar.equipped].name}));
         rp[msg.channel].turn_amount += combat.action_time(msg, "equip");

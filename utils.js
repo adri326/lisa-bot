@@ -269,7 +269,6 @@ exports.createRoom = function(msg) {
 	});
 	return room;
 }
-
 exports.spawn_mob = function(msg, room, id) {
 	var HP = 0;
 	if (Array.isArray(rp[msg.channel].mobs[id].HP)) {
@@ -281,7 +280,42 @@ exports.spawn_mob = function(msg, room, id) {
 	} else {
 		HP = rp[msg.channel].mobs[id].HP;
 	}
-	room.entities.push({id: id, HP: HP, MP: rp[msg.channel].mobs[id].MP, effects: [], holding: module.exports.getObjectID(rp[msg.channel].objects, rp[msg.channel].mobs[id].holding)});
+	room.entities.push({id: id, HP: HP, MP: rp[msg.channel].mobs[id].MP, effects: [], holding: module.exports.parseItem(msg, rp[msg.channel].mobs[id].holding)});
+}
+exports.parseItem = function(msg, item) {
+	var id = module.exports.getObjectID(rp[msg.channel].objects, item);
+	if (id != -1) {
+		var output = {};
+		var actObj = rp[msg.channel].objects[id];
+		if (Array.isArray(actObj.levels)) {
+			var max = 0;
+			actObj.levels.forEach((d, i) => {
+				if (d <= rp[msg.channel].difficulty) {
+					max = i;
+				}
+			});
+			output.level = Math.floor(module.exports.random(0, max));
+		} else if (typeof(actObj.levels) == "object") {
+			if ((actObj.levels.type || "default") == "default") {
+				if (Array.isArray(actObj.levels.difficulty)) {
+					var max = 0;
+					actObj.levels.difficulty.forEach((d, i) => {
+						if (d <= rp[msg.channel].difficulty) {
+							max = i;
+						}
+					});
+					output.level = Math.floor(module.exports.random(0, max));
+				}
+			}
+		}
+		output.id = id;
+		output.quantity = 1; // TODO: Implement this
+		output.xp = module.exports.random(0, actObj.xp_per_level || config.defaults.object_xp_per_level);
+		return output;
+	}
+	else {
+		return {id: -1, quantity: 1, level: 1};
+	}
 }
 
 var reg_args = new RegExp("(?: *, *|\\()([a-zA-Z_\"0-9]*)", "g"); // Gives back all the elements withing brackets: e.g "(a, 2)" will return ["(a, 2", "a", 2]

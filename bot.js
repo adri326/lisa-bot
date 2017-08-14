@@ -78,14 +78,14 @@ function initRP(msg) {
 
 
 
-function canCheat(msg) {
+canCheat = function canCheat(msg) {
 	if (rp[msg.channel].admins != undefined && rp[msg.channel].user_right_level != undefined)
 		return rp[msg.channel].admins.indexOf(msg.author) > -1 || rp[msg.channel].user_rights_level >= 2;
 	else
 		return true;
 }
 
-function saveRP(id) {
+saveRP = function saveRP(id) {
 	if (id != undefined && id != null && rp[id] != undefined && rp[id] != null) {
 		var string = CircularJSON.stringify(rp[id]);
 		//console.log(string);

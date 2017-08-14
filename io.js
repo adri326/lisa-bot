@@ -2,6 +2,7 @@ var parent = module.parent;
 const utils = require("./utils");
 const attrmgt = require("./rpg/attrmgt");
 const specie = require("./rpg/specie");
+const combat = require("./rpg/combat");
 const fs = require("fs");
 const CircularJSON = require("circular-json");
 
@@ -213,12 +214,12 @@ exports.displayInv = function(msg) {
 		if (actChar.holding == -1) {
 			embed.fields.push({name: "Holding", value: "*Nothing*"});
 		} else {
-			embed.fields.push({name: "Holding", value: module.exports.displayItem(msg, rp[msg.channel].objects[actChar.holding])});
+			embed.fields.push({name: "Holding", value: module.exports.displayItem(msg, combat.calc_item_stats(msg, actChar.holding.id, actChar.holding.level))});
 		}
 		if (actChar.equipped == -1) {
 			embed.fields.push({name: "Equipped", value: "*Nothing*"});
 		} else {
-			embed.fields.push({name: "Equipped", value: module.exports.displayItem(msg, rp[msg.channel].objects[actChar.equipped])});
+			embed.fields.push({name: "Equipped", value: module.exports.displayItem(msg,combat.calc_item_stats(msg, actChar.equipped.id, actChar.equipped.level))});
 		}
 		utils.replyMessage(msg, {embed: embed});
 	}
@@ -252,6 +253,9 @@ exports.displayItem = function(msg, item, desc = false) {
 				}
 				string = string + headChar + " " + config.baseStats[bs] + ": " + Titem.stats[config.baseStats[bs]];
 			}
+		}
+		if (item.level != undefined) {
+			string = string + " \\*Level " + item.level + "\\*";
 		}
 	}
 	return string;
@@ -316,6 +320,9 @@ exports.displayItemFancy = function(msg, item, holder) {
 					})
 			});
 		}
+	}
+	if (item.level != undefined && item.maxlevel != undefined) {
+		embed.fields.push({name: "Level", value: "" + item.level + "/" + item.maxlevel});
 	}
 	return {embed: embed};
 }
@@ -456,13 +463,13 @@ exports.loadRP = function() {
 							console.log(items[i] + ": char(" + x + ").MP");
 							problems++;
 						}
-						if (chan.chars[x].holding === undefined) {
-							chan.chars[x].holding = -1;
+						if (chan.chars[x].holding === undefined || typeof(chan.chars[x].holding) === "number") {
+							chan.chars[x].holding = {id: chan.chars[x].holding ||-1, quantity: 1, level: 1, xp: 0};
 							console.log(items[i] + ": char(" + x + ").holding");
 							problems++;
 						}
-						if (chan.chars[x].equipped === undefined) {
-							chan.chars[x].equipped = -1;
+						if (chan.chars[x].equipped === undefined || typeof(chan.chars[x].equipped) === "number") {
+							chan.chars[x].equipped = {id: chan.chars[x].equipped || -1, quantity: 1, level: 1, xp: 0};
 							console.log(items[i] + ": char(" + x + ").equipped");
 							problems++;
 						}
@@ -493,6 +500,44 @@ exports.loadRP = function() {
 							chan[item] = config.printableSettings[item];
 							console.log(items[i] + ": settings." + item);
 							problems++;
+						}
+					}
+					if (typeof(chan.room) === "undefined") {
+						console.log(items[i] + ": chan.room");
+					}
+					else {
+						if (!Array.isArray(chan.room.mobs)) {
+							chan.room.mobs = [];
+							console.log(items[i] + ": room.mobs");
+							problems++;
+						}
+						else {
+							chan.room.mobs.forEach(mob => {
+								if (typeof(mob.holding) !== "object") {
+									mob.holding = {id: +mob.holding || -1, quantity: 1, level: 1, xp: 0};
+									console.log(items[i] + ": room.mobs.holding");
+									problems++;
+								}
+							});
+						}
+						if (!Array.isArray(chan.room.items)) {
+							chan.room.items = [];
+							console.log(items[i] + ": room.items");
+							problems++;
+						}
+						else {
+							chan.room.items.forEach(item => {
+								if (item.level == undefined) {
+									item.level = 1;
+									console.log(items[i] + ": room.items.level");
+									problems++;
+								}
+								if (item.xp == undefined) {
+									item.xp = 0;
+									console.log(items[i] + ": room.items.xp");
+									problems++;
+								}
+							});
 						}
 					}
 					if (chan.turn_amount === undefined) {

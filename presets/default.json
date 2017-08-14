@@ -155,7 +155,14 @@
       ],
       "difficulty": 1,
       "rate": 0.5,
-      "max_difficulty": 2
+      "max_difficulty": 2,
+      "levels": [1, 1.25, 1.5, 1.75],
+      "maxlevel": 4,
+      "levels_affect": {
+        "ATK": 0.5,
+        "VIT": -0.25
+      },
+      "xp_per_level": 50
     },
     {
       "name": "Rusty hammer",
@@ -182,7 +189,14 @@
       ],
       "difficulty": 2,
       "rate": 0.4,
-      "max_difficulty": 3.5
+      "max_difficulty": 3.5,
+      "levels": [2, 2.25, 2.5, 2.75, 3],
+      "maxlevel": 5,
+      "levels_affect": {
+        "ATK": 0.6,
+        "VIT": -0.3
+      },
+      "xp_per_level": 100
     },
     {
       "name": "Tempered steel hammer",
@@ -195,7 +209,14 @@
       ],
       "difficulty": 3,
       "rate": 0.3,
-      "max_difficulty": 6
+      "max_difficulty": 6,
+      "levels": [3, 4, 5, 5.5, 6],
+      "maxlevel": 5,
+      "levels_affect": {
+        "ATK": 0.7,
+        "VIT": -0.3
+      },
+      "xp_per_level": 100
     },
     {
       "name": "Magically reinforced Iron hammer",
@@ -208,7 +229,14 @@
         {"name": "base_stat", "values": ["MGC", "3", "int"]}
       ],
       "difficulty": 4,
-      "rate": 0.5
+      "rate": 0.5,
+      "levels": [4, 5, 6, 7, 8, 9],
+      "maxlevel": 6,
+      "levels_affect": {
+        "ATK": 1,
+        "MGC": 0.3
+      },
+      "xp_per_level": 150
     },
     {
       "name": "Wooden sword",
@@ -220,7 +248,13 @@
       ],
       "difficulty": 1,
       "rate": 0.5,
-      "max_difficulty": 2
+      "max_difficulty": 2,
+      "levels": [1, 1.25, 1.5, 1.75],
+      "maxlevel": 4,
+      "levels_affect": {
+        "ATK": 0.5
+      },
+      "xp_per_level": 50
     },
     {
       "name": "Iron sword",
@@ -233,7 +267,14 @@
       ],
       "difficulty": 2,
       "rate": 0.7,
-      "max_difficulty": 3.5
+      "max_difficulty": 3.5,
+      "levels": [2, 2.25, 2.5, 2.75, 3],
+      "maxlevel": 5,
+      "levels_affect": {
+        "ATK": 0.6,
+        "DEF": 0.2
+      },
+      "xp_per_level": 100
     },
     {
       "name": "Copper sword",
@@ -246,7 +287,14 @@
       ],
       "difficulty": 2,
       "rate": 0.4,
-      "max_difficulty": 4
+      "max_difficulty": 4,
+      "levels": [2, 2.25, 2.5, 2.75, 3, 3.5],
+      "maxlevel": 6,
+      "levels_affect": {
+        "ATK": 0.5,
+        "DEF": 0.3
+      },
+      "xp_per_level": 100
     },
     {
       "name": "Magically reinforced Iron sword",
@@ -260,7 +308,14 @@
         {"name": "base_stat", "values": ["VIT", "2", "int"]}
       ],
       "difficulty": 4,
-      "rate": 0.3
+      "rate": 0.3,
+      "levels": [4, 5, 6, 7, 8, 9],
+      "maxlevel": 6,
+      "levels_affect": {
+        "ATK": 1,
+        "MGC": 0.3
+      },
+      "xp_per_level": 150
     },
     {
       "name": "Saphire incrusted sword",
@@ -273,7 +328,15 @@
         {"name": "base_stat", "values": ["MGC", "2", "int"]}
       ],
       "difficulty": 5,
-      "rate": 0.4
+      "rate": 0.4,
+      "levels": [5, 5.5, 6, 7.5, 8.5, 10, 12],
+      "maxlevel": 8,
+      "levels_affect": {
+        "ATK": 1,
+        "MGC": 0.3,
+        "DEF": 0.3
+      },
+      "xp_per_level": 200
     },
     {
       "name": "Adamantine sword",
@@ -286,7 +349,15 @@
         {"name": "base_stat", "values": ["VIT", "1", "int"]}
       ],
       "difficulty": 5,
-      "rate": 0.4
+      "rate": 0.4,
+      "levels": [5, 6, 7, 7.5, 8.5, 10, 12],
+      "maxlevel": 8,
+      "levels_affect": {
+        "ATK": 0.8,
+        "MGC": 0.3,
+        "DEF": 0.6
+      },
+      "xp_per_level": 200
     },
     {
       "name": "Wulfenite cristal sword",
@@ -299,7 +370,14 @@
         {"name": "on_hit", "values": ["select_attack_target", "give_effect(fire, 3)"]}
       ],
       "difficulty": 6,
-      "rate": 0.3
+      "rate": 0.3,
+      "levels": [6, 8, 10, 11, 12, 13],
+      "maxlevel": 9,
+      "levels_affect": {
+        "ATK": 1.5,
+        "DEF": 0.4
+      },
+      "xp_per_level": 300
     },
     {
       "name": "Dark Iron sword",
@@ -310,7 +388,14 @@
         {"name": "base_stat", "values": ["ATK", "5", "int"]},
         {"name": "base_stat", "values": ["DEF", "5", "int"]},
         {"name": "base_stat", "values": ["MGC", "-3", "int"]}
-      ]
+      ],
+      "maxlevel": 5,
+      "levels_affect": {
+        "ATK": 4,
+        "MGC": -2,
+        "DEF": 2
+      },
+      "xp_per_level": 500
     },
     {
       "name": "The edge of destiny",
@@ -323,7 +408,15 @@
         {"name": "base_stat", "values": ["VIT", "3", "int"]}
       ],
       "difficulty": 6,
-      "rate": 0.2
+      "rate": 0.2,
+      "levels": [7, 8, 10],
+      "maxlevel": 6,
+      "levels_affect": {
+        "ATK": 2,
+        "DEF": 0.5,
+        "VIT": 0.3
+      },
+      "xp_per_level": 300
     },
     {
       "name": "Palladium sword",
@@ -336,7 +429,15 @@
         {"name": "base_stat", "values": ["VIT", "3", "int"]}
       ],
       "difficulty": 8,
-      "rate": 0.4
+      "rate": 0.4,
+      "levels": [8, 8.5, 9, 9.5, 10],
+      "maxlevel": 8,
+      "levels_affect": {
+        "ATK": 1.5,
+        "DEF": 0.6,
+        "VIT": 0.3
+      },
+      "xp_per_level": 250
     },
     {
       "name": "Mythril sword",
@@ -349,7 +450,15 @@
         {"name": "base_stat", "values": ["VIT", "3", "int"]}
       ],
       "difficulty": 9,
-      "rate": 0.3
+      "rate": 0.3,
+      "levels": [9, 10, 12, 13, 13.5],
+      "maxlevel": 6,
+      "levels_affect": {
+        "ATK": 1.75,
+        "DEF": 0.65,
+        "VIT": 0.5
+      },
+      "xp_per_level": 300
     },
     {
       "name": "Mythril-palladium alloy sword",
@@ -362,7 +471,15 @@
         {"name": "base_stat", "values": ["VIT", "3", "int"]}
       ],
       "difficulty": 12,
-      "rate": 0.15
+      "rate": 0.15,
+      "levels": [12, 14, 16, 18, 20],
+      "maxlevel": 7,
+      "levels_affect": {
+        "ATK": 2.5,
+        "DEF": 1,
+        "VIT": 0.8
+      },
+      "xp_per_level": 500
     },
     {
       "name": "Kaiburr-incrusted Mythril-Infinium alloy sword",
@@ -376,11 +493,20 @@
         {"name": "base_stat", "values": ["MGC", "8", "int"]}
       ],
       "difficulty": 16,
-      "rate": 0.05
+      "rate": 0.05,
+      "levels": [16, 20, 25],
+      "maxlevel": 3,
+      "levels_affect": {
+        "ATK": 8,
+        "DEF": 2,
+        "VIT": 2,
+        "MGC": 2
+      },
+      "xp_per_level": 2000
     },
     {
       "name": "The power of the gods",
-      "desc": "THIS BELONGS TO ME. GIVE IT BACK TO ME!",
+      "desc": "THIS BELONGS TO ME. GIVE IT BACK!",
       "class": "sword",
       "subclass": "admin",
       "attrs": [
@@ -402,7 +528,13 @@
       ],
       "difficulty": 1,
       "rate": 0.5,
-      "max_difficulty": 2
+      "max_difficulty": 2,
+      "levels": [1, 1.25, 1.5, 1.75],
+      "maxlevel": 4,
+      "levels_affect": {
+        "ATK": 0.5
+      },
+      "xp_per_level": 50
     },
     {
       "name": "Iron spear",
@@ -416,7 +548,14 @@
       ],
       "difficulty": 2,
       "rate": 0.4,
-      "max_difficulty": 3.5
+      "max_difficulty": 3.5,
+      "levels": [2, 2.25, 2.5, 2.75, 3],
+      "maxlevel": 5,
+      "levels_affect": {
+        "ATK": 0.6,
+        "DEF": 0.2
+      },
+      "xp_per_level": 100
     },
     {
       "name": "Emerald-incrusted spear",
@@ -430,7 +569,15 @@
       ],
       "difficulty": 4,
       "rate": 0.4,
-      "max_difficulty": 7
+      "max_difficulty": 7,
+      "levels": [4, 5, 6, 6.5],
+      "maxlevel": 5,
+      "levels_affect": {
+        "ATK": 0.7,
+        "DEF": 0.3,
+        "VIT": 0.2
+      },
+      "xp_per_level": 200
     },
     {
       "name": "Orc tooth",
@@ -457,7 +604,14 @@
       ],
       "difficulty": 1,
       "max_difficulty": 3,
-      "rate": 0.8
+      "rate": 0.8,
+      "levels": [1, 1.5, 2, 2.5],
+      "maxlevel": 4,
+      "levels_affect": {
+        "DEF": 0.5,
+        "VIT": 0.2
+      },
+      "xp_per_level": 100
     },
     {
       "name": "Iron armor",
@@ -469,7 +623,14 @@
         {"name": "base_stat", "values": ["VIT", "-2", "int"]}
       ],
       "difficulty": 2,
-      "rate": 0.6
+      "rate": 0.6,
+      "levels": [2, 3, 3.5, 4, 5, 5.5],
+      "maxlevel": 6,
+      "levels_affect": {
+        "DEF": 0.6,
+        "VIT": 0.2
+      },
+      "xp_per_level": 200
     },
     {
       "name": "Copper armor",
@@ -481,7 +642,14 @@
         {"name": "base_stat", "values": ["VIT", "-1", "int"]}
       ],
       "difficulty": 2,
-      "rate": 0.7
+      "rate": 0.7,
+      "levels": [2, 3, 3.5, 4, 5, 5.5],
+      "maxlevel": 6,
+      "levels_affect": {
+        "DEF": 0.5,
+        "VIT": 0.3
+      },
+      "xp_per_level": 200
     },
     {
       "name": "Aluminium armor",
@@ -493,7 +661,14 @@
         {"name": "base_stat", "values": ["VIT", "0", "int"]}
       ],
       "difficulty": 3,
-      "rate": 0.2
+      "rate": 0.2,
+      "levels": [3, 4, 4.5],
+      "maxlevel": 6,
+      "levels_affect": {
+        "DEF": 0.8,
+        "VIT": 0.5
+      },
+      "xp_per_level": 350
     },
     {
       "name": "Chain armor",
@@ -505,7 +680,14 @@
         {"name": "base_stat", "values": ["VIT", "-1", "int"]}
       ],
       "difficulty": 6,
-      "rate": 0.5
+      "rate": 0.5,
+      "levels": [6, 6.5, 8, 8.5, 9],
+      "maxlevel": 6,
+      "levels_affect": {
+        "DEF": 0.8,
+        "VIT": 0.2
+      },
+      "xp_per_level": 300
     },
     {
       "name": "Plate armor",
@@ -517,7 +699,14 @@
         {"name": "base_stat", "values": ["VIT", "-2", "int"]}
       ],
       "difficulty": 8,
-      "rate": 0.7
+      "rate": 0.7,
+      "levels": [8, 9, 10, 11],
+      "maxlevel": 7,
+      "levels_affect": {
+        "DEF": 1,
+        "VIT": 0.5
+      },
+      "xp_per_level": 400
     },
     {
       "name": "Mythril chain armor",
@@ -529,7 +718,14 @@
         {"name": "base_stat", "values": ["VIT", "0", "int"]}
       ],
       "difficulty": 12,
-      "rate": 0.1
+      "rate": 0.1,
+      "levels": [12, 14, 16, 19],
+      "maxlevel": 5,
+      "levels_affect": {
+        "DEF": 3,
+        "VIT": 0.7
+      },
+      "xp_per_level": 500
     },
     {
       "name": "Soul of Cthulu",

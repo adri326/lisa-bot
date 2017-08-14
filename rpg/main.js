@@ -9,8 +9,6 @@ const presets_mod = require(path.join(__dirname, "/presets"));
 const attrmgt = require(path.join(__dirname, "/attrmgt"));
 
 
-
-
 module.exports = function main(msg, commandParts, command) {
   if (rp[msg.channel] === null || rp[msg.channel] == undefined) {
     // NOTE: Init RP if not done
@@ -59,7 +57,19 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "desc") {
         var objectID = utils.getObjectID(rp[msg.channel].objects, commandParts[3]);
-        utils.replyMessage(msg, io.displayItemFancy(msg, rp[msg.channel].objects[objectID], rp[msg.channel].chars[msg.author]));
+        var level = 1;
+        rp[msg.channel].chars[msg.author].inventory.forEach(o => {
+          if (o.id == objectID) {
+            level = o.level;
+          }
+        });
+        if (rp[msg.channel].chars[msg.author].holding.id == objectID) {
+          level = rp[msg.channel].chars[msg.author].holding.level;
+        }
+        if (rp[msg.channel].chars[msg.author].equipped.id == objectID) {
+          level = rp[msg.channel].chars[msg.author].equipped.level;
+        }
+        utils.replyMessage(msg, io.displayItemFancy(msg, combat.calc_item_stats(msg, objectID, level), rp[msg.channel].chars[msg.author]));
       }
       else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
         rp[msg.channel].turn_amount += combat.action_time(msg, "give_cheat");
@@ -260,7 +270,7 @@ module.exports = function main(msg, commandParts, command) {
           if (msg.content=="**YES**") {
 
             utils.replyMessage(msg, "**Erasing data...**");
-            rp[msg.channel] = null;
+            delete rp[msg.channel];
             utils.replyMessage(msg, "**All data have been erased**. *You can initialise the RP at any time using `l!RP`*!");
 
           }

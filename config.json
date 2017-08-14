@@ -71,7 +71,8 @@
 		"STR": 4,
 		"HP": 20,
 		"MP": 20,
-		"difficulty": 1
+		"difficulty": 1,
+		"object_xp_per_level": 100
 	},
 	"fire_damage": 1,
 	"settingList": {
@@ -202,6 +203,7 @@
 			"skill_assign_success": "Successfully assigned one point to the `[[name]]` stat!",
 			"use_structure": "**[[player]]** used `[[name]]`!",
 			"list_chars": "Those are all the ones I know: {{CHARS}}",
+			"object_level_up": "**[[holder]]**'s `[[name]]` leveled up!",
 
 			"adventurers_well_success": "As you take a sip, all your wounds heals up!",
 
