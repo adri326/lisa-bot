@@ -110,6 +110,7 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 	player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0) + (player.armor.stats.ATK || 0);
 	player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0) + (player.armor.stats.DEF || 0);
 	player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0) + (player.armor.stats.VIT || 0);
+	player.AGI = (player.item.stats.AGI || 0) + (player_raw.AGI || 0) + (player.armor.stats.AGI || 0);
 	//console.log(CircularJSON.stringify(player));
 	var mob_impl = actRoom.entities[mobID];
 	var mob_raw = rp[msg.channel].mobs[mob_impl.id];
@@ -117,17 +118,22 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 	mob.item = attrmgt.treat(module.exports.calc_item_stats(msg, mob_impl.holding.id, mob_impl.holding.level), rp[msg.channel].species[mob_raw.specieId | -1], rp[msg.channel].classes[mob_raw.classId | -1]);
 	mob.ATK = (mob.item.stats.ATK || 0) + (mob_raw.ATK || 0);
 	mob.DEF = (mob.item.stats.DEF || 0) + (mob_raw.DEF || 0);
+	mob.AGI = (mob.item.stats.AGI || 0) + (mob_raw.AGI || 0);
 	//console.log(CircularJSON.stringify(mob));
 	var PtMdmg = (player.ATK) / (0.01 * mob.DEF * mob.DEF + 1);
 	var MtPdmg = (mob.ATK) / (0.01 * player.DEF * player.DEF + 1);
 
 	if (player_atk) {
-		mob_impl.HP -= PtMdmg;
+		var hit_prob = Math.min(1-utils.sigma(Math.sinh(mob.AGI - player.AGI + 0.5) * config.dodge_probability)/2,1);
+		var hit = utils.random(0, 1) < hit_prob;
+
+		if (hit)
+			mob_impl.HP -= PtMdmg;
 
 		if (mob_impl.HP <= 0) {
 			// Give the xp to the player
 			var xp_togive = mob_impl.difficulty * mob_raw.HP
-			text += "\r\n" + "You killed " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage!";
+			text += io.say(msg, "mob_killed", {amount: Math.round(PtMdmg*10)/10, name: mob_raw.name, player: player_raw.name});
 
 			actRoom.entities.splice(mobID, 1);
 
@@ -155,21 +161,32 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 				}
 			});
 			return text;
-		} else {
+		}
+		else if (hit) {
 			text += "\r\n" + "You hit " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.";
+		}
+		else if (!hit) {
+			text += io.say(msg, "mob_dodged", {name: mob_raw.name, player: player_raw.name})
 		}
 	}
 
 	if (mob_atk) {
 		if (mob_impl.HP > 0) {
-			player_raw.HP -= MtPdmg;
+			var hit_prob = Math.min(1-utils.sigma(Math.sinh(player.AGI - mob.AGI + 0.5) * config.dodge_probability)/2,1);
+			var hit = utils.random(0, 1) < hit_prob;
+			if (hit)
+				player_raw.HP -= MtPdmg;
 
 			if (player_raw.HP <= 0) {
 				// TODO: le reste ici
 				text += "\r\n" + "You took " + Math.round(MtPdmg*10)/10 + " and **YOU DIED**. You will ressuscite when entering the next room!"
 				player_raw.HP = 0;
-			} else {
+			}
+			else if (hit) {
 				text += "\r\n" + "You took " + Math.round(MtPdmg*10)/10 + " of damage from " + mob_raw.name + ". " + Math.round(player_raw.HP*10)/10 + " HP left."
+			}
+			else if (!hit) {
+				text += io.say(msg, "player_dodged", {name: mob_raw.name, player: player_raw.name});
 			}
 		}
 	}
