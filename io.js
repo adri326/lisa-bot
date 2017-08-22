@@ -5,6 +5,8 @@ const specie = require("./rpg/specie");
 const combat = require("./rpg/combat");
 const fs = require("fs");
 const CircularJSON = require("circular-json");
+const crypto = require("crypto");
+
 
 exports.say = function(msg, msg_name, msg_info = {}) {
 	var string = config.lang[lang][msg_name];
@@ -447,11 +449,20 @@ exports.loadRP = function() {
 		if (items != null)
 		for (i = 0; i < items.length; i++) {
 			if (items[i]!="undefined" && items[i]!="[object Object]") {
-				data = fs.readFileSync("./"+config.rpdir+"/"+items[i])
+				const decipher = crypto.createDecipher(config.cipherName, hashedKey);
+				var data = fs.readFileSync("./"+config.rpdir+"/"+items[i]);
+				var decrypted;
+				if (data.toString().startsWith("{")) {
+					decrypted = data.toString();
+				}
+				else {
+					decrypted = decipher.update(data.toString(), config.cipherIOMode, "utf-8");
+					decrypted += decipher.final("utf-8");
+				}
 				if (data == null || data == undefined) {
 					console.log("Error while reading "+config.rpdir+"/"+items[i]+", skipping!");
 				} else {
-					var chan = CircularJSON.parse(data.toString());
+					var chan = CircularJSON.parse(decrypted);
 					for (x in chan.chars) {
 						if (chan.chars[x].HP == undefined || isNaN(chan.chars[x].HP)) {
 							chan.chars[x].HP = config.defaults.HP;
@@ -550,4 +561,14 @@ exports.loadRP = function() {
 			}
 		}
 	})
+}
+exports.saveRP = function saveRP(id) {
+	if (id != undefined && id != null && rp[id] != undefined && rp[id] != null) {
+		const cipher = crypto.createCipher(config.cipherName, hashedToken);
+		var string = CircularJSON.stringify(rp[id]);
+		var crypted = cipher.update(string, "utf-8", config.cipherIOMode);
+		crypted += cipher.final(config.cipherIOMode);
+		//console.log(string);
+		fs.writeFileSync("./"+config.rpdir+"/"+id, crypted);
+	}
 }

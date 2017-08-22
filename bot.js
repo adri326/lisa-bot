@@ -23,6 +23,7 @@
 
 lang = "en";
 var token;
+hashedKey = "";
 
 
 
@@ -32,6 +33,7 @@ console.log("Loading modules...");
 const fs = require("fs");
 const Discord = require("discord.js");
 const CircularJSON = require("circular-json");
+const crypto = require("crypto");
 
 // Internal requirements
 const utils = require("./utils");
@@ -85,13 +87,7 @@ canCheat = function canCheat(msg) {
 		return true;
 }
 
-saveRP = function saveRP(id) {
-	if (id != undefined && id != null && rp[id] != undefined && rp[id] != null) {
-		var string = CircularJSON.stringify(rp[id]);
-		//console.log(string);
-		fs.writeFileSync("./"+config.rpdir+"/"+id, string);
-	}
-}
+saveRP = io.saveRP;
 
 bot.on("ready", () => {
 	onLoginTime = new Date().getTime();
@@ -272,7 +268,6 @@ function treatMsg(msg) {
 		}
 	}
 }
-
 var initLoading = function () {
 	console.log("Reading config.json ...");
 
@@ -305,6 +300,7 @@ var initLoading = function () {
 		console.log("Successfully loaded the token, logging in...");
 		token = data.toString().trim();
 		bot.login(token);
+		hashedKey = crypto.createHash(config.hashName).update(fs.readFileSync("./key.txt").toString(), "utf-8").digest();
 		//console.log(token);
 	});
 }();
