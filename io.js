@@ -564,7 +564,7 @@ exports.loadRP = function() {
 }
 exports.saveRP = function saveRP(id) {
 	if (id != undefined && id != null && rp[id] != undefined && rp[id] != null) {
-		const cipher = crypto.createCipher(config.cipherName, hashedToken);
+		const cipher = crypto.createCipher(config.cipherName, hashedKey);
 		var string = CircularJSON.stringify(rp[id]);
 		var crypted = cipher.update(string, "utf-8", config.cipherIOMode);
 		crypted += cipher.final(config.cipherIOMode);
