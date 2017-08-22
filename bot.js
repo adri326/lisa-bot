@@ -280,9 +280,13 @@ var initLoading = function () {
 	// Success; Parse data.json
 	config = JSON.parse(data.toString());
 	console.log("Successfully parsed config data, loading the saves ...");
-
-
-
+	try {
+		var keyRaw = fs.readFileSync("./key.txt").toString().trim();
+		hashedKey = crypto.createHash(config.hashName).update(keyRaw, "utf-8").digest();
+	}
+	catch (err) {
+		console.error("Error while loading the key, be sure to have something creative in the file key.txt and that it is the same with witch the saves have been crypted, with utf-8 encoding!")
+	}
 	io.loadRP();
 	console.log("Loaded the saves, loading presets");
 
@@ -300,7 +304,6 @@ var initLoading = function () {
 		console.log("Successfully loaded the token, logging in...");
 		token = data.toString().trim();
 		bot.login(token);
-		hashedKey = crypto.createHash(config.hashName).update(fs.readFileSync("./key.txt").toString(), "utf-8").digest();
 		//console.log(token);
 	});
 }();

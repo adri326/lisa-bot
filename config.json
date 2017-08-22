@@ -5,6 +5,7 @@
 	"hashName": "sha256",
 	"cipherName": "aes192",
 	"cipherIOMode": "hex",
+	"cipherEncoding": "binary",
 	"itemsPerPage": 4,
 	"maxBranchedCmds": 5,
 	"MP_recovery": 2,

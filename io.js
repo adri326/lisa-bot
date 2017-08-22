@@ -456,8 +456,8 @@ exports.loadRP = function() {
 					decrypted = data.toString();
 				}
 				else {
-					decrypted = decipher.update(data.toString(), config.cipherIOMode, "utf-8");
-					decrypted += decipher.final("utf-8");
+					decrypted = decipher.update(data.toString(), config.cipherIOMode, config.cipherEncoding);
+					decrypted += decipher.final(config.cipherEncoding);
 				}
 				if (data == null || data == undefined) {
 					console.log("Error while reading "+config.rpdir+"/"+items[i]+", skipping!");
@@ -566,7 +566,7 @@ exports.saveRP = function saveRP(id) {
 	if (id != undefined && id != null && rp[id] != undefined && rp[id] != null) {
 		const cipher = crypto.createCipher(config.cipherName, hashedKey);
 		var string = CircularJSON.stringify(rp[id]);
-		var crypted = cipher.update(string, "utf-8", config.cipherIOMode);
+		var crypted = cipher.update(string, config.cipherEncoding, config.cipherIOMode);
 		crypted += cipher.final(config.cipherIOMode);
 		//console.log(string);
 		fs.writeFileSync("./"+config.rpdir+"/"+id, crypted);
