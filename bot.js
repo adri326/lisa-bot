@@ -73,16 +73,16 @@ rp = [];
 presets = [];
 
 initRP = function initRP(msg) {
-	utils.replyMessage(msg, io.say("init_alert"));
-	rp[msg.channel] = utils.createRP(msg.channel);
-	utils.replyMessage(msg, io.say("init_success"));
+	utils.replyMessage(msg, io.say(msg, "init_alert"));
+	rp[msg.guild] = utils.createRP(msg);
+	utils.replyMessage(msg, io.say(msg, "init_success"));
 }
 
 
 
 canCheat = function canCheat(msg) {
-	if (rp[msg.channel].admins != undefined && rp[msg.channel].user_right_level != undefined)
-		return rp[msg.channel].admins.indexOf(msg.author) > -1 || rp[msg.channel].user_rights_level >= 2;
+	if (msg.rpg.admins != undefined && msg.rpg.user_right_level != undefined)
+		return msg.rpg.admins.indexOf(msg.author) > -1 || msg.rpg.user_rights_level >= 2;
 	else
 		return true;
 }
@@ -98,6 +98,7 @@ bot.on("ready", () => {
 	console.log(" - loading time: " + (onLoadedTime - onStartupTime) + "ms");
 	console.log(" - login time: " + (onLoginTime - onLoadedTime) + "ms");
 	console.log(" - errors found: " + problems);
+	Object.keys(rp).forEach(o => {console.log(o)});
 	console.log("");
 	setInterval(() => {
 		//console.log("Saving RPs...");
@@ -125,10 +126,11 @@ bot.on("message", msg => {
 				author_username: msg.author.username,
 				author_discriminator: msg.author.discriminator,
 				channel: msg.channel.id,
-				guild: msg.channel.guild.id
+				guild: msg.channel.guild.id,
+				rpg: rp[msg.guild.id]
 			};
-			if (rp[msg.channel.id] != undefined && rp[msg.channel.id] !== null) {
-				if (rp[msg.channel.id].rp_shortcut) {
+			if (rp[msg.guild.id] != undefined && rp[msg.guild.id] !== null) {
+				if (rp[msg.guild.id].rp_shortcut) {
 					if (msg_t.content.startsWith("!")) {
 						msg_t.content = msg_t.content.replace(/\!/, "l!rpg ");
 					}

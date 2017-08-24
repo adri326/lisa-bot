@@ -10,7 +10,7 @@ exports.hit = function(msg, someone) {
 		}
 	}
 	// (else)
-	var s_t = attrmgt.treat(someone, rp[msg.channel].species[someone.specieId | -1], rp[msg.channel].classes[someone.classId | -1]);
+	var s_t = attrmgt.treat(someone, msg.rpg.species[someone.specieId | -1], msg.rpg.classes[someone.classId | -1]);
 	return s_t.stats["ATK"];
 }
 exports.give_xp = function(msg, someone, amount, disp = false) {
@@ -30,16 +30,18 @@ exports.give_xp = function(msg, someone, amount, disp = false) {
 		}
 	}
 	[someone.holding, someone.equipped].forEach(child => {
-		var object = rp[msg.channel].objects[child.id];
-		if (child.level < object.maxlevel || 1) {
-			child.xp += amount;
-			var lxp = object.xp_per_level || config.defaults.object_xp_per_level;
-			while (child.xp >= lxp) {
-				if (child.level < object.maxlevel) {
-					child.level++;
-					text += "\r\n" + io.say(msg, "object_level_up", {name: object.name, holder: someone.name});
+		var object = msg.rpg.objects[child.id];
+		if (object != undefined) {
+			if (child.level < object.maxlevel || 1) {
+				child.xp += amount;
+				var lxp = object.xp_per_level || config.defaults.object_xp_per_level;
+				while (child.xp >= lxp) {
+					if (child.level < object.maxlevel) {
+						child.level++;
+						text += "\r\n" + io.say(msg, "object_level_up", {name: object.name, holder: someone.name});
+					}
+					child.xp -= lxp;
 				}
-				child.xp -= lxp;
 			}
 		}
 	});
@@ -50,9 +52,9 @@ exports.give_xp = function(msg, someone, amount, disp = false) {
 	return text;
 }
 exports.level_up_awards = function(msg, someone) {
-	someone.skill_points += Math.max(0, rp[msg.channel].skill_points_per_level);
-	if (rp[msg.channel].skill_points_per_level>0) {
-		return io.say(msg, "player_got_skill_points", {name: someone.name, amount: rp[msg.channel].skill_points_per_level});
+	someone.skill_points += Math.max(0, msg.rpg.skill_points_per_level);
+	if (msg.rpg.skill_points_per_level>0) {
+		return io.say(msg, "player_got_skill_points", {name: someone.name, amount: msg.rpg.skill_points_per_level});
 	}
 	return null;
 }
@@ -65,7 +67,7 @@ exports.action_time = function(msg, action_name) { // Actions parser and calcula
 				var base = action.base || 1;
 				var speed = action.speed || base;
 				var speed_range = action.speed_range || 10;
-				var player_speed = rp[msg.channel].chars[msg.author].VIT;
+				var player_speed = msg.rpg.chars[msg.author].VIT;
 				return base - utils.sigma(player_speed/speed_range)*speed;
 			} else {
 				return +action;
@@ -79,7 +81,7 @@ exports.reset_turns = function(msg) {
 }
 
 exports.calc_item_stats = function(msg, id, level) {
-	var object = rp[msg.channel].objects[id];
+	var object = msg.rpg.objects[id];
 	if (object != undefined) {
 		var output = {
 			name: object.name,
@@ -102,20 +104,20 @@ exports.calc_item_stats = function(msg, id, level) {
 exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = true) {
 	var text = "";
 
-	var actRoom = rp[msg.channel].room;
-	var player_raw = rp[msg.channel].chars[playerID];
+	var actRoom = msg.rpg.room;
+	var player_raw = msg.rpg.chars[playerID];
 	var player = {};
-	player.item = attrmgt.treat(module.exports.calc_item_stats(msg, player_raw.holding.id, player_raw.holding.level), rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
-	player.armor = attrmgt.treat(module.exports.calc_item_stats(msg, player_raw.equipped.id, player_raw.equipped.level), rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
+	player.item = attrmgt.treat(module.exports.calc_item_stats(msg, player_raw.holding.id, player_raw.holding.level), msg.rpg.species[player_raw.specieId | -1], msg.rpg.classes[player_raw.classId | -1]);
+	player.armor = attrmgt.treat(module.exports.calc_item_stats(msg, player_raw.equipped.id, player_raw.equipped.level), msg.rpg.species[player_raw.specieId | -1], msg.rpg.classes[player_raw.classId | -1]);
 	player.ATK = (player.item.stats.ATK || 0) + (player_raw.ATK || 0) + (player.armor.stats.ATK || 0);
 	player.DEF = (player.item.stats.DEF || 0) + (player_raw.DEF || 0) + (player.armor.stats.DEF || 0);
 	player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0) + (player.armor.stats.VIT || 0);
 	player.AGI = (player.item.stats.AGI || 0) + (player_raw.AGI || 0) + (player.armor.stats.AGI || 0);
 	//console.log(CircularJSON.stringify(player));
 	var mob_impl = actRoom.entities[mobID];
-	var mob_raw = rp[msg.channel].mobs[mob_impl.id];
+	var mob_raw = msg.rpg.mobs[mob_impl.id];
 	var mob = {};
-	mob.item = attrmgt.treat(module.exports.calc_item_stats(msg, mob_impl.holding.id, mob_impl.holding.level), rp[msg.channel].species[mob_raw.specieId | -1], rp[msg.channel].classes[mob_raw.classId | -1]);
+	mob.item = attrmgt.treat(module.exports.calc_item_stats(msg, mob_impl.holding.id, mob_impl.holding.level), msg.rpg.species[mob_raw.specieId | -1], msg.rpg.classes[mob_raw.classId | -1]);
 	mob.ATK = (mob.item.stats.ATK || 0) + (mob_raw.ATK || 0);
 	mob.DEF = (mob.item.stats.DEF || 0) + (mob_raw.DEF || 0);
 	mob.AGI = (mob.item.stats.AGI || 0) + (mob_raw.AGI || 0);
@@ -151,10 +153,10 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 				if (o.name == "item_drop") {
 					var rate = +o.values[1] || 1;
 					if (utils.random(0, 1) <= rate) {
-						rp[msg.channel].objects.forEach((p, i) => {
+						msg.rpg.objects.forEach((p, i) => {
 							if (p.name == o.values[0]) {
-								rp[msg.channel].room.items.push({id: i, quantity: 1});
-								text += "\r\n" + io.say(msg, "mob_drops", {name: mob_raw.name, object: rp[msg.channel].objects[i].name});
+								msg.rpg.room.items.push({id: i, quantity: 1});
+								text += "\r\n" + io.say(msg, "mob_drops", {name: mob_raw.name, object: msg.rpg.objects[i].name});
 							}
 						});
 					}
@@ -194,6 +196,6 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 }
 
 exports.mob_action = function(msg, mobID) {
-	if (rp[msg.channel].room.entities[mobID] != undefined) return module.exports.combat(msg, msg.author, mobID, true, false);
+	if (msg.rpg.room.entities[mobID] != undefined) return module.exports.combat(msg, msg.author, mobID, true, false);
 	return "";
 }

@@ -175,8 +175,8 @@
 					]
 				}
 			},
-			"init_alert": "*Uh oh!* RP is not ready? Let me fix that!",
-			"init_success": "*Haha!* RP is ready, but there's isn't much variety! Add classes/species/items using `l!rp admin specie/class/item create`! You would want to edit the more advanced settings usin `l!rp admin settings`",
+			"init_alert": "Initialising the RPG! Stick on...",
+			"init_success": "There ya go! I have successfully initialised the RPG. It's ready to start, but I highly recommend you to look at those commands:\r\n`l!rpg admin presets` to list, import and remove presets. Necessary to have other assets than the very few default one.\r\n`l!rpg admin settings`, to edit more advanced settings like the difficulty, the user rights...",
 			"char_init": "Hello wanderer! Welcome in our wonderful world! May I know your name?",
 			"char_init_success": "Nice to meet you, {{NAME}}!",
 			"char_ask_class": "What class are you, {{NAME}}?{{CLASSES}}",

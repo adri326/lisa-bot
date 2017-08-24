@@ -4,16 +4,16 @@ const io = require("../io");
 const combat = require(path.join(__dirname, "/combat"));
 
 exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
-  if (rp[msg.channel].chars[to] != undefined) {
+  if (msg.rpg.chars[to] != undefined) {
     quantity = parseInt(_quantity | "1");
-    var objectId = utils.getObjectID(rp[msg.channel].objects, item);
+    var objectId = utils.getObjectID(msg.rpg.objects, item);
     var level = 1;
     var xp = 0;
     if (objectId != -1) {
       var canGive = true;
       if (!cheat) {
         canGive = false;
-        var actChar = rp[msg.channel].chars[from];
+        var actChar = msg.rpg.chars[from];
         for (item in actChar.inventory) {
           if (actChar.inventory[item].id == objectId) {
             level = actChar.inventory[item].level || level;
@@ -30,8 +30,8 @@ exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
         }
       }
       if (canGive) {
-        rp[msg.channel].chars[to].inventory.push({id: objectId, quantity: quantity, level: level});
-        utils.replyMessage(msg, "Successully gave item to " + rp[msg.channel].chars[to].name + "!");
+        msg.rpg.chars[to].inventory.push({id: objectId, quantity: quantity, level: level});
+        utils.replyMessage(msg, "Successully gave item to " + msg.rpg.chars[to].name + "!");
         return true;
       } else {
         if (quantity==1) {
@@ -54,15 +54,15 @@ exports.give = function(msg, from, to, item, _quantity="1", cheat=false) {
 }
 exports.hold = function(msg, item = "") {
   if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-    var actChar = rp[msg.channel].chars[msg.author];
-    var objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), item);
+    var actChar = msg.rpg.chars[msg.author];
+    var objectId = utils.getObjectID(utils.getIDMatchingObjects(msg.rpg.objects, actChar.inventory), item);
     if (objectId != -1) {
       if (actChar.holding != -1 && actChar.holding != undefined)
         actChar.inventory.push(actChar.holding);
       actChar.holding = actChar.inventory[objectId];
       actChar.inventory.splice(objectId, 1);
-      utils.replyMessage(msg, io.say(msg, "hold_success", {name: rp[msg.channel].objects[actChar.holding.id].name}));
-      rp[msg.channel].turn_amount += combat.action_time(msg, "hold");
+      utils.replyMessage(msg, io.say(msg, "hold_success", {name: msg.rpg.objects[actChar.holding.id].name}));
+      msg.rpg.turn_amount += combat.action_time(msg, "hold");
     } else {
       utils.replyMessage(msg, "Item not found!");
     }
@@ -70,16 +70,16 @@ exports.hold = function(msg, item = "") {
 }
 exports.equip = function(msg, item = "") {
   if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-    var actChar = rp[msg.channel].chars[msg.author];
-    var objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), item);
+    var actChar = msg.rpg.chars[msg.author];
+    var objectId = utils.getObjectID(utils.getIDMatchingObjects(msg.rpg.objects, actChar.inventory), item);
     if (objectId != -1) {
-      if (rp[msg.channel].objects[actChar.inventory[objectId].id].class == "armor") {
+      if (msg.rpg.objects[actChar.inventory[objectId].id].class == "armor") {
         if (actChar.equipped != -1 && actChar.equipped != undefined)
           actChar.inventory.push(actChar.equipped);
         actChar.equipped = actChar.inventory[objectId];
         actChar.inventory.splice(objectId, 1);
-        utils.replyMessage(msg, io.say(msg, "equip_success", {name: rp[msg.channel].objects[actChar.equipped.id].name}));
-        rp[msg.channel].turn_amount += combat.action_time(msg, "equip");
+        utils.replyMessage(msg, io.say(msg, "equip_success", {name: msg.rpg.objects[actChar.equipped.id].name}));
+        msg.rpg.turn_amount += combat.action_time(msg, "equip");
       }
       else {
         utils.replyMessage(msg, io.say(msg, "error_not_armor"));

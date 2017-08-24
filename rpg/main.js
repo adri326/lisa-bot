@@ -12,7 +12,7 @@ const attrmgt = require(path.join(__dirname, "/attrmgt"));
 
 
 module.exports = function main(msg, commandParts, command) {
-  if (rp[msg.channel] === null || rp[msg.channel] == undefined) {
+  if (rp[msg.guild] === null || rp[msg.guild] == undefined) {
     // NOTE: Init RP if not done
     initRP(msg);
   }
@@ -22,8 +22,8 @@ module.exports = function main(msg, commandParts, command) {
       fields: []
     };
     var players_turn = "";
-    if (rp[msg.channel].turn_type == 0) {
-      rp[msg.channel].turn_amount = 0;
+    if (msg.rpg.turn_type == 0) {
+      msg.rpg.turn_amount = 0;
     }
 
     if (commandParts[1] == "char") {
@@ -44,8 +44,8 @@ module.exports = function main(msg, commandParts, command) {
           io.displayChar(msg, msg.author);
         }
         else {
-          for (player in rp[msg.channel].chars) {
-            if (rp[msg.channel].chars[player].name.toLowerCase() == commandParts[3].toLowerCase()) {
+          for (player in msg.rpg.chars) {
+            if (msg.rpg.chars[player].name.toLowerCase() == commandParts[3].toLowerCase()) {
               io.displayChar(msg, player);
               break;
             }
@@ -58,28 +58,28 @@ module.exports = function main(msg, commandParts, command) {
         io.displayInv(msg);
       }
       else if (commandParts[2] == "desc") {
-        var objectID = utils.getObjectID(rp[msg.channel].objects, commandParts[3]);
+        var objectID = utils.getObjectID(msg.rpg.objects, commandParts[3]);
         var level = 1;
-        rp[msg.channel].chars[msg.author].inventory.forEach(o => {
+        msg.rpg.chars[msg.author].inventory.forEach(o => {
           if (o.id == objectID) {
             level = o.level;
           }
         });
-        if (rp[msg.channel].chars[msg.author].holding.id == objectID) {
-          level = rp[msg.channel].chars[msg.author].holding.level;
+        if (msg.rpg.chars[msg.author].holding.id == objectID) {
+          level = msg.rpg.chars[msg.author].holding.level;
         }
-        if (rp[msg.channel].chars[msg.author].equipped.id == objectID) {
-          level = rp[msg.channel].chars[msg.author].equipped.level;
+        if (msg.rpg.chars[msg.author].equipped.id == objectID) {
+          level = msg.rpg.chars[msg.author].equipped.level;
         }
-        utils.replyMessage(msg, io.displayItemFancy(msg, combat.calc_item_stats(msg, objectID, level), rp[msg.channel].chars[msg.author]));
+        utils.replyMessage(msg, io.displayItemFancy(msg, combat.calc_item_stats(msg, objectID, level), msg.rpg.chars[msg.author]));
       }
       else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
-        rp[msg.channel].turn_amount += combat.action_time(msg, "give_cheat");
+        msg.rpg.turn_amount += combat.action_time(msg, "give_cheat");
         if (commandParts[3] == "self" && canCheat(msg)) {
           var objectInfo = utils.splitCommand(command.slice(17));
-          var objectId = utils.getObjectID(rp[msg.channel].objects, objectInfo[0]);
+          var objectId = utils.getObjectID(msg.rpg.objects, objectInfo[0]);
           if (objectId != -1) {
-            rp[msg.channel].chars[msg.author].inventory.push({id: objectId, quantity: parseInt(objectInfo[1] | "1")});
+            msg.rpg.chars[msg.author].inventory.push({id: objectId, quantity: parseInt(objectInfo[1] | "1")});
             utils.replyMessage(msg, "Successfully gave the item!");
           } else {
             utils.replyMessage(msg, "I couldn't find the object you were looking for!");
@@ -90,18 +90,18 @@ module.exports = function main(msg, commandParts, command) {
             if (commandParts[3].startsWith("<@")) {
               player = commandParts[3].slice(2, commandParts[3].length - 1);
             } else {
-              Object.keys(rp[msg.channel].chars).forEach(key => {
-                if (rp[msg.channel].chars[key].name == commandParts[3]) {
+              Object.keys(msg.rpg.chars).forEach(key => {
+                if (msg.rpg.chars[key].name == commandParts[3]) {
                   player = key;
                 }
               });
             }
             if (inv.give(msg, msg.author, player, commandParts[4], commandParts[5], commandParts[2]=="cgive")) {
               if (commandParts[2] == "cgive") {
-                rp[msg.channel].turn_amount += combat.action_time(msg, "give_cheat");
+                msg.rpg.turn_amount += combat.action_time(msg, "give_cheat");
               }
               else {
-                rp[msg.channel].turn_amount += combat.action_time(msg, "give");
+                msg.rpg.turn_amount += combat.action_time(msg, "give");
               }
             }
           }
@@ -115,11 +115,11 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "pick") {
         if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-          var pickable = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, rp[msg.channel].room.items), commandParts[3]);
-          if (pickable !== -1 && rp[msg.channel].room.items[pickable] !== null) {
-            rp[msg.channel].chars[msg.author].inventory.push(rp[msg.channel].room.items[pickable]);
-            utils.replyMessage(msg, io.say(msg, "item_pick_success", {name: rp[msg.channel].objects[rp[msg.channel].room.items[pickable].id].name}));
-            rp[msg.channel].room.items.splice(pickable, 1);
+          var pickable = utils.getObjectID(utils.getIDMatchingObjects(msg.rpg.objects, msg.rpg.room.items), commandParts[3]);
+          if (pickable !== -1 && msg.rpg.room.items[pickable] !== null) {
+            msg.rpg.chars[msg.author].inventory.push(msg.rpg.room.items[pickable]);
+            utils.replyMessage(msg, io.say(msg, "item_pick_success", {name: msg.rpg.objects[msg.rpg.room.items[pickable].id].name}));
+            msg.rpg.room.items.splice(pickable, 1);
           } else {
             utils.replyMessage(msg, io.say(msg, "error_item_not_in_room"));
           }
@@ -127,11 +127,11 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "drop") {
         if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-          var foundID = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, rp[msg.channel].chars[msg.author].inventory), commandParts[3]);
+          var foundID = utils.getObjectID(utils.getIDMatchingObjects(msg.rpg.objects, msg.rpg.chars[msg.author].inventory), commandParts[3]);
           if (foundID != -1) {
-            rp[msg.channel].room.items.push(rp[msg.channel].chars[msg.author].inventory[foundID]);
-            utils.replyMessage(msg, io.say(msg, "item_drop_success", {name: rp[msg.channel].objects[rp[msg.channel].chars[msg.author].inventory[foundID].id].name}));
-            rp[msg.channel].chars[msg.author].inventory.splice(foundID, 1);
+            msg.rpg.room.items.push(msg.rpg.chars[msg.author].inventory[foundID]);
+            utils.replyMessage(msg, io.say(msg, "item_drop_success", {name: msg.rpg.objects[msg.rpg.chars[msg.author].inventory[foundID].id].name}));
+            msg.rpg.chars[msg.author].inventory.splice(foundID, 1);
           }
           else {
             utils.replyMessage(msg, io.say(msg, "error_item_not_in_possession"));
@@ -145,7 +145,7 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "assign") {
         if (utils.require(msg, reqs.has_char)) {
-          var actChar = rp[msg.channel].chars[msg.author];
+          var actChar = msg.rpg.chars[msg.author];
           if (actChar.skill_points > 0) {
             if (config.baseStats.includes(commandParts[3]) && commandParts[3] != "HP" && commandParts[3] != "MP" && actChar[commandParts[3]] != undefined) {
               if (actChar[commandParts[3]] === null || isNaN(actChar[commandParts[3]])) {
@@ -172,17 +172,17 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "next") {
         if (utils.require(msg, reqs.is_room | reqs.are_mobs | reqs.has_char | reqs.is_alive)) {
-          if (rp[msg.channel].room.entities.length == 0) {
-            rp[msg.channel].room = utils.createRoom(msg);
+          if (msg.rpg.room.entities.length == 0) {
+            msg.rpg.room = utils.createRoom(msg);
             utils.replyMessage(msg, "Moved to the next room!");
             io.displayRoom(msg);
             combat.reset_turns(msg);
-            rp[msg.channel].difficulty = (+rp[msg.channel].difficulty + +rp[msg.channel].difficulty_increment) + "";
-            for (char in rp[msg.channel].chars) {
-              if (rp[msg.channel].chars[char].HP <= 0) {
-                rp[msg.channel].chars[char].HP = config.maxHP/2;
-                rp[msg.channel].chars[char].xp = 0;
-                players_text += "\r\n" + io.say(msg, "player_ressuscited", {name: rp[msg.channel].chars[char].name});
+            msg.rpg.difficulty = (+msg.rpg.difficulty + +msg.rpg.difficulty_increment) + "";
+            for (char in msg.rpg.chars) {
+              if (msg.rpg.chars[char].HP <= 0) {
+                msg.rpg.chars[char].HP = config.maxHP/2;
+                msg.rpg.chars[char].xp = 0;
+                players_text += "\r\n" + io.say(msg, "player_ressuscited", {name: msg.rpg.chars[char].name});
               }
             }
           }
@@ -192,19 +192,19 @@ module.exports = function main(msg, commandParts, command) {
         }
       }
       else if (commandParts[2] == "init") {
-        if (rp[msg.channel].room == undefined) {
-          rp[msg.channel].room = utils.createRoom(msg);
+        if (msg.rpg.room == undefined) {
+          msg.rpg.room = utils.createRoom(msg);
           io.displayRoom(msg);
           combat.reset_turns(msg);
         }
       }
       else if (commandParts[2] == "use") {
-        var actRoom = rp[msg.channel].room;
+        var actRoom = msg.rpg.room;
         for (s = 0; s < actRoom.structures.length; s++) {
           var actStruct = config.structures[actRoom.structures[s]];
           if (actStruct != undefined) {
             if (actStruct.name.toLowerCase() == commandParts[3].toLowerCase()) {
-              players_text += io.say(msg, "use_structure", {name: actStruct.name, player: rp[msg.channel].chars[msg.author].name});
+              players_text += io.say(msg, "use_structure", {name: actStruct.name, player: msg.rpg.chars[msg.author].name});
               if (actStruct.vanish) {
                 actRoom.structures.splice(s, 1);
                 s--;
@@ -230,7 +230,7 @@ module.exports = function main(msg, commandParts, command) {
 
           var setting = [commandParts[3], commandParts[4]];
 
-          if (rp[msg.channel][setting[0]] !== null || printableSettings.indexOf(setting[0]) >= 0) {
+          if (msg.rpg[setting[0]] !== null || printableSettings.indexOf(setting[0]) >= 0) {
             if (setting[1]=="true") {
 
               setting[1] = true;
@@ -240,7 +240,7 @@ module.exports = function main(msg, commandParts, command) {
               setting[1] = false;
 
             }
-            if (Array.isArray(rp[msg.channel][setting[0]])) {
+            if (Array.isArray(msg.rpg[setting[0]])) {
 
               setting[1] = setting[1].split(",");
 
@@ -249,7 +249,7 @@ module.exports = function main(msg, commandParts, command) {
               setting[1] = parseFloat(setting[1].slice(1));
             }
             console.log(setting[0] + ": "+ setting[1]);
-            rp[msg.channel][setting[0]] = setting[1];
+            msg.rpg[setting[0]] = setting[1];
 
           }
 
@@ -258,7 +258,7 @@ module.exports = function main(msg, commandParts, command) {
 
           var string = "";
           for (i in config.printableSettings) {
-            string = string + "\r\n" + i + ": " + rp[msg.channel][i];
+            string = string + "\r\n" + i + ": " + msg.rpg[i];
           }
           utils.replyMessage(msg, "```" + string + "```");
 
@@ -272,7 +272,7 @@ module.exports = function main(msg, commandParts, command) {
           if (msg.content=="**YES**") {
 
             utils.replyMessage(msg, "**Erasing data...**");
-            delete rp[msg.channel];
+            delete msg.rpg;
             utils.replyMessage(msg, "**All data have been erased**. *You can initialise the RP at any time using `l!RP`*!");
 
           }
@@ -284,17 +284,17 @@ module.exports = function main(msg, commandParts, command) {
 
         var string = "";
 
-        //rp[msg.channel].mobs = [config.defaults.mob];
-        rp[msg.channel].room = utils.createRoom(msg);
+        //msg.rpg.mobs = [config.defaults.mob];
+        msg.rpg.room = utils.createRoom(msg);
 
-        /*rp[msg.channel].dungeon = [Level.new(4, 4, 0, 2, 1)];
-        rp[msg.channel].position
+        /*msg.rpg.dungeon = [Level.new(4, 4, 0, 2, 1)];
+        msg.rpg.position
 
-        string = io.displayLevel(rp[msg.channel].dungeon[0]);*/
+        string = io.displayLevel(msg.rpg.dungeon[0]);*/
 
-        string = CircularJSON.stringify(rp[msg.channel].room);
+        string = CircularJSON.stringify(msg.rpg.room);
 
-        //string = string + "\r\n ATK: " + combat.hit(msg, rp[msg.channel].mobs[0]);
+        //string = string + "\r\n ATK: " + combat.hit(msg, msg.rpg.mobs[0]);
 
         utils.replyMessage(msg, "```\r\n" + string + "```");
 
@@ -303,8 +303,8 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "tidy") {
         var amount = 0;
-        Object.keys(rp[msg.channel].chars).forEach(o => {
-          var actChar = rp[msg.channel].chars[o];
+        Object.keys(msg.rpg.chars).forEach(o => {
+          var actChar = msg.rpg.chars[o];
           for (item = 0; item < actChar.inventory.length; item++) {
             var actItem = actChar.inventory[item];
             if (actItem === null || actItem === undefined) {
@@ -324,15 +324,15 @@ module.exports = function main(msg, commandParts, command) {
             }
           }
         });
-        for (item = 0; item < rp[msg.channel].room.items.length; item++) {
-          var actItem =  rp[msg.channel].room.items[item];
+        for (item = 0; item < msg.rpg.room.items.length; item++) {
+          var actItem =  msg.rpg.room.items[item];
           if (actItem === null || actItem === undefined) {
-             rp[msg.channel].room.items.splice(item, 1);
+             msg.rpg.room.items.splice(item, 1);
              item--;
              amount++;
           } else {
             if (actItem.id === null || actItem.id === undefined) {
-              rp[msg.channel].room.items.splice(item, 1);
+              msg.rpg.room.items.splice(item, 1);
               item--;
               amount++;
             } else {
@@ -342,10 +342,10 @@ module.exports = function main(msg, commandParts, command) {
             }
           }
         }
-        for (mob = 0; mob < rp[msg.channel].room.entities; mob++) {
-          var actMob = rp[msg.channel].room.entities[mob];
+        for (mob = 0; mob < msg.rpg.room.entities; mob++) {
+          var actMob = msg.rpg.room.entities[mob];
           if (actMob === null || actMob === undefined) {
-            rp[msg.channel].room.items.splice(mob, 1);
+            msg.rpg.room.items.splice(mob, 1);
             mob--;
             amount++;
           }
@@ -354,7 +354,7 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (config.settingList[commandParts[2]] != undefined) {
 
-        actSetting = rp[msg.channel][config.settingList[commandParts[2]]];
+        actSetting = msg.rpg[config.settingList[commandParts[2]]];
         if (commandParts[3] == "create") {
 
           if (commandParts[2] == "object") {
@@ -459,7 +459,7 @@ module.exports = function main(msg, commandParts, command) {
         else if (commandParts[3] == "remove") {
 
           for (i in actSetting) {
-            if (commandParts[4] == rp[msg.channel].species[i].name) {
+            if (commandParts[4] == msg.rpg.species[i].name) {
 
               actSetting.splice(i, 1);
               utils.replyMessage(msg, "Removed " + commandParts[2] + " " + commandParts[4]);
@@ -566,10 +566,10 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "summon") {
         var name = utils.splitCommand(command.slice(15).trim())[0];
-        var mobId = utils.getObjectID(rp[msg.channel].mobs, name);
+        var mobId = utils.getObjectID(msg.rpg.mobs, name);
         if (mobId != -1) {
-          var mob = rp[msg.channel].mobs[mobId];
-          var actRoom = rp[msg.channel].room;
+          var mob = msg.rpg.mobs[mobId];
+          var actRoom = msg.rpg.room;
           actRoom.entities.push({id: mobId, HP: mob.HP});
           utils.replyMessage(msg, "Successfully summoned the mob " + name + "!");
         }
@@ -580,14 +580,14 @@ module.exports = function main(msg, commandParts, command) {
       else if (commandParts[2] == "kill") {
         var name = utils.splitCommand(command.slice(13).trim())[0];
         var mobId = -1;
-        rp[msg.channel].room.entities.forEach((o, i) => {
-          if (rp[msg.channel].mobs[o.id].name == commandParts[3]) {
+        msg.rpg.room.entities.forEach((o, i) => {
+          if (msg.rpg.mobs[o.id].name == commandParts[3]) {
             mobId = i;
           }
         });
         if (mobId != -1) {
-          var mob = rp[msg.channel].mobs[mobId];
-          var actRoom = rp[msg.channel].room;
+          var mob = msg.rpg.mobs[mobId];
+          var actRoom = msg.rpg.room;
           actRoom.entities.splice(mobId, 1);
           utils.replyMessage(msg, "Successfully killed the mob " + name + "!");
         }
@@ -602,22 +602,25 @@ module.exports = function main(msg, commandParts, command) {
         else if (commandParts[3] == "remove") {
           presets_mod.remove(msg, commandParts[4]);
         }
+        else if (commandParts[3] == undefined || commandParts[3] === null || commandParts[3] == "list") {
+          utils.replyMessage(msg, {embed: presets_mod.displayPresets(commandParts[4])});
+        }
       }
       else if (commandParts[2] == "turn") {
-        rp[msg.channel].turn_amount += combat.action_time(msg, "turn");
+        msg.rpg.turn_amount += combat.action_time(msg, "turn");
         replyMessage(msg, say(msg, "admin_turn_success"));
       }
       else if (commandParts[2] == "reinit") {
         if (config.settingList[commandParts[3]] != undefined) {
-          rp[msg.channel][config.settingList[commandParts[3]]] = [config.defaults[commandParts[3]]];
+          msg.rpg[config.settingList[commandParts[3]]] = [config.defaults[commandParts[3]]];
           utils.replyMessage(msg, io.say(msg, "admin_reinit_success"));
         }
       }
       else if (commandParts[2] == "HP" || commandParts[2] == "MP") {
-        Object.keys(rp[msg.channel].chars).filter(
-          p => rp[msg.channel].chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(rp[msg.channel].chars[p].name))
+        Object.keys(msg.rpg.chars).filter(
+          p => msg.rpg.chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(msg.rpg.chars[p].name))
         ).forEach(
-          p => rp[msg.channel].chars[p][commandParts[2]] += +commandParts[4]
+          p => msg.rpg.chars[p][commandParts[2]] += +commandParts[4]
         );
       }
       else if (commandParts[2] == "levelup") {
@@ -626,12 +629,12 @@ module.exports = function main(msg, commandParts, command) {
           fields: []
         };
 
-        Object.keys(rp[msg.channel].chars).filter(
-          p => rp[msg.channel].chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(rp[msg.channel].chars[p].name))
+        Object.keys(msg.rpg.chars).filter(
+          p => msg.rpg.chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(msg.rpg.chars[p].name))
         ).forEach(
           p => {
             var text = "";
-            actChar = rp[msg.channel].chars[p];
+            actChar = msg.rpg.chars[p];
             actChar.xp = 0;
             actChar.lvl++;
             var lxp = utils.xp_per_level(actChar.lvl);
@@ -647,7 +650,7 @@ module.exports = function main(msg, commandParts, command) {
       }
       else if (commandParts[2] == "room") {
         if (commandParts[3] == "next") {
-          rp[msg.channel].room = utils.createRoom(msg);
+          msg.rpg.room = utils.createRoom(msg);
           utils.replyMessage(msg, "Moved to the next room!");
           io.displayRoom(msg);
           combat.reset_turns(msg);
@@ -655,8 +658,8 @@ module.exports = function main(msg, commandParts, command) {
         else if (commandParts[3] == "add") {
           if (commandParts[4] == "structure") {
             if (commandParts[5] != undefined && commandParts[5] != "") {
-              if (Array.isArray(rp[msg.channel].room.structures)) {
-                rp[msg.channel].room.structures.push(commandParts[5]);
+              if (Array.isArray(msg.rpg.room.structures)) {
+                msg.rpg.room.structures.push(commandParts[5]);
               }
             }
           }
@@ -666,21 +669,21 @@ module.exports = function main(msg, commandParts, command) {
     else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
       if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room | reqs.is_alive)) {
         // TODO: separate the player => mob and the mob => player, to make ALL the mob attack
-        var actRoom = rp[msg.channel].room;
+        var actRoom = msg.rpg.room;
         var targetId = Math.floor(utils.random(0, actRoom.entities.length));
         if (commandParts[2] != undefined) {
-          var foundID = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].mobs, actRoom.entities), commandParts[2]);
+          var foundID = utils.getObjectID(utils.getIDMatchingObjects(msg.rpg.mobs, actRoom.entities), commandParts[2]);
           if (foundID != -1) targetId = foundID;
         }
         if (targetId != -1) {
-          var player_raw = rp[msg.channel].chars[msg.author];
+          var player_raw = msg.rpg.chars[msg.author];
           var player = {};
-          player.item = attrmgt.treat(rp[msg.channel].objects[player_raw.holding], rp[msg.channel].species[player_raw.specieId | -1], rp[msg.channel].classes[player_raw.classId | -1]);
+          player.item = attrmgt.treat(msg.rpg.objects[player_raw.holding], msg.rpg.species[player_raw.specieId | -1], msg.rpg.classes[player_raw.classId | -1]);
           player.VIT = (player.item.stats.VIT || 0) + (player_raw.VIT || 0);
           if (player.VIT < 0) {
-            rp[msg.channel].turn_amount += 1-player.VIT*combat.action_time(msg, "attack");
+            msg.rpg.turn_amount += 1-player.VIT*combat.action_time(msg, "attack");
           } else {
-            rp[msg.channel].turn_amount += combat.action_time(msg, "attack")-utils.sigma(player.VIT/combat.action_time(msg, "attack_range"));
+            msg.rpg.turn_amount += combat.action_time(msg, "attack")-utils.sigma(player.VIT/combat.action_time(msg, "attack_range"));
           }
           var text = combat.combat(msg, msg.author, targetId, false, true);
           if (text != "") {
@@ -693,7 +696,7 @@ module.exports = function main(msg, commandParts, command) {
     }
     else if (commandParts[1] == "wait") {
       if (utils.require(msg, reqs.is_alive | reqs.has_char)) {
-        rp[msg.channel].turn_amount += combat.action_time(msg, "wait");
+        msg.rpg.turn_amount += combat.action_time(msg, "wait");
       }
     }
     else if (commandParts[1] == "spell") {
@@ -713,13 +716,13 @@ module.exports = function main(msg, commandParts, command) {
     }
     else if (commandParts[1] == "use") {
       var holding = true;
-      var actChar = rp[msg.channel].chars[msg.author];
-      var actObj = rp[msg.channel].objects[actChar.holding.id];
+      var actChar = msg.rpg.chars[msg.author];
+      var actObj = msg.rpg.objects[actChar.holding.id];
       var objectId = -1;
       if (commandParts[2] != undefined && commandParts[2] !== null) {
-        objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), commandParts[2]);
+        objectId = utils.getObjectID(utils.getIDMatchingObjects(msg.rpg.objects, actChar.inventory), commandParts[2]);
         if (objectId != -1) {
-          actObj = rp[msg.channel].objects[actChar.inventory[objectId].id];
+          actObj = msg.rpg.objects[actChar.inventory[objectId].id];
           holding = false;
         }
         else {
@@ -743,7 +746,7 @@ module.exports = function main(msg, commandParts, command) {
           actChar.inventory.splice(objectId, 1);
         }
         utils.replyMessage(msg, io.say(msg, "use_item_success", {name: actObj.name}));
-        rp[msg.channel].turn_amount += combat.action_time(msg, "use_" + actObj.class + "/" + actObj.subclass) ||
+        msg.rpg.turn_amount += combat.action_time(msg, "use_" + actObj.class + "/" + actObj.subclass) ||
           combat.action_time(msg, "use_" + actObj.class) ||
           combat.action_time(msg, "use");
       } else if (objectId != -1) {
@@ -755,25 +758,25 @@ module.exports = function main(msg, commandParts, command) {
       turns_embed.fields.push({name: "Player's turn", value: players_turn});
     }
 
-    if (rp[msg.channel] != undefined)
-    if (rp[msg.channel].turn_type == 0) {
-      if (rp[msg.channel].turn_amount > 0) {
+    if (msg.rpg != undefined)
+    if (msg.rpg.turn_type == 0) {
+      if (msg.rpg.turn_amount > 0) {
         var turn_count = 0;
 
-        for (turn_count = 1; rp[msg.channel].turn_amount >= 1 || utils.random(0, +rp[msg.channel].turn_randomness) < rp[msg.channel].turn_amount && rp[msg.channel].turn_amount > 0; rp[msg.channel].turn_amount--, turn_count++) { // Loop back into rp[msg.channel].turn_amount until it reaches a value below 1
+        for (turn_count = 1; msg.rpg.turn_amount >= 1 || utils.random(0, +msg.rpg.turn_randomness) < msg.rpg.turn_amount && msg.rpg.turn_amount > 0; msg.rpg.turn_amount--, turn_count++) { // Loop back into msg.rpg.turn_amount until it reaches a value below 1
           var mob_text = "", players_text = "", combat_text = "";
           if (utils.require(msg, reqs.is_room | reqs.are_mobs_in_room | reqs.are_mobs, false)) {
 
-            var targetId = Math.floor(utils.random(0, rp[msg.channel].room.entities.length));
-            if (utils.getObjectID(rp[msg.channel].room.entities[targetId].effects, "suspend") == -1) {
+            var targetId = Math.floor(utils.random(0, msg.rpg.room.entities.length));
+            if (utils.getObjectID(msg.rpg.room.entities[targetId].effects, "suspend") == -1) {
               combat_text += "\r\n" + combat.mob_action(msg, targetId);
             } else {
-              combat_text += "\r\n" + io.say(msg, "mob_suspended", {name: rp[msg.channel].mobs[rp[msg.channel].room.entities[targetId].id].name});
+              combat_text += "\r\n" + io.say(msg, "mob_suspended", {name: msg.rpg.mobs[msg.rpg.room.entities[targetId].id].name});
             }
 
-            for (mob = 0; mob < rp[msg.channel].room.entities.length; mob++) {
-              var actMob = rp[msg.channel].room.entities[mob];
-              var actMobParent = rp[msg.channel].mobs[actMob.id];
+            for (mob = 0; mob < msg.rpg.room.entities.length; mob++) {
+              var actMob = msg.rpg.room.entities[mob];
+              var actMobParent = msg.rpg.mobs[actMob.id];
               if (actMobParent != undefined) {
                 for (effect = 0; effect < actMob.effects.length; effect++) {
                   var actEffect = actMob.effects[effect];
@@ -792,15 +795,15 @@ module.exports = function main(msg, commandParts, command) {
               }
               if (actMob.HP <= 0) {
                 mob_text += "\r\n" + io.say(msg, "mob_died", {name: actMobParent.name});
-                rp[msg.channel].room.entities.splice(mob, 1);
+                msg.rpg.room.entities.splice(mob, 1);
               }
             }
 
           }
 
-          for (player in rp[msg.channel].chars) {
+          for (player in msg.rpg.chars) {
 
-            var actChar = rp[msg.channel].chars[player];
+            var actChar = msg.rpg.chars[player];
             if (actChar.MP < config.maxMP && actChar.HP > 0) {
               actChar.MP += config.MP_recovery;
               actChar.MP = Math.min(actChar.MP, config.maxMP);
@@ -815,13 +818,13 @@ module.exports = function main(msg, commandParts, command) {
 
           var text = "";
 
-          if (rp[msg.channel].display_combat_text && combat_text != "") {
+          if (msg.rpg.display_combat_text && combat_text != "") {
             text += combat_text;
           }
-          if (rp[msg.channel].display_passive_damages && mob_text != "") {
+          if (msg.rpg.display_passive_damages && mob_text != "") {
             text += mob_text;
           }
-          if (rp[msg.channel].display_players_heal && players_text != "") {
+          if (msg.rpg.display_players_heal && players_text != "") {
             text += players_text;
           }
 
@@ -830,9 +833,9 @@ module.exports = function main(msg, commandParts, command) {
           }
 
         }
-        /*if (rp[msg.channel].turn_amount > 0) {
+        /*if (msg.rpg.turn_amount > 0) {
           turn_count++;
-          if (utils.random(0, 1)>rp[msg.channel].turn_amount) {
+          if (utils.random(0, 1)>msg.rpg.turn_amount) {
             var targetId = Math.floor(utils.random(0, actRoom.entities.length));
             turns_embed.fields.push({name: "Turn " + turn_count, value: combat.mob_action(msg, targetId)});
           }
@@ -842,7 +845,7 @@ module.exports = function main(msg, commandParts, command) {
     if (turns_embed.fields.length != 0) {
       utils.replyMessage(msg, {embed: turns_embed});
     }
-    else if (rp[msg.channel].display_noop) {
+    else if (msg.rpg.display_noop) {
       utils.replyMessage(msg, {embed: {
         title: "Nothing happenned",
         color: config.colors.dungeon

@@ -9,11 +9,12 @@ const crypto = require("crypto");
 
 
 exports.say = function(msg, msg_name, msg_info = {}) {
+	// TODO: undefined-proof that shit
 	var string = config.lang[lang][msg_name];
   if (string !== undefined) {
   	try {
   		if (string.indexOf("{{NAME}}")>-1) // Replace {{NAME}} by the author's character name TODO: add fallback on the user's pseudo
-  			string = string.replace("{{NAME}}", rp[msg.channel].chars[msg.author].name || msg.author_username);
+  			string = string.replace("{{NAME}}", msg.rpg.chars[msg.author].name || msg.author_username);
 			if (string.indexOf("{{CHARS}}")>-1)
 				string = string.replace("{{CHARS}}", module.exports.listChars(msg));
   		if (string.indexOf("{{CLASSES}}")>-1) // Replace {{CLASSES}} by a list of the available classes
@@ -21,9 +22,9 @@ exports.say = function(msg, msg_name, msg_info = {}) {
   		if (string.indexOf("{{SPECIES}}")>-1) // Replace {{SPECIES}} by a list of the available species
   			string = string.replace("{{SPECIES}}", module.exports.listSpecie(msg));
   		if (string.indexOf("{{CLASS}}")>-1) // Replace {{CLASS}} by the class of the character of the author
-  			string = string.replace("{{CLASS}}", rp[msg.channel].classes[rp[msg.channel].chars[msg.author].classId].name);
+  			string = string.replace("{{CLASS}}", msg.rpg.classes[msg.rpg.chars[msg.author].classId].name);
   		if (string.indexOf("{{SPECIE}}")>-1) // Replace {{SPECIE}} by the specie of the character of the author
-  			string = string.replace("{{SPECIE}}", rp[msg.channel].species[rp[msg.channel].chars[msg.author].specieId].name);
+  			string = string.replace("{{SPECIE}}", msg.rpg.species[msg.rpg.chars[msg.author].specieId].name);
 			{
 				var s = 0, e = 0;
 				while (s > -1 && e > -1) {
@@ -74,7 +75,7 @@ exports.askChar = function(msg) {
   if (utils.require(msg, reqs.are_classes | reqs.are_species)) {
   	utils.replyMessage(msg, module.exports.say(msg, "char_init"));
   	module.exports.talk(msg, function(msg) {
-  		rp[msg.channel].chars[msg.author] = utils.createChar(msg.author, msg.content);
+  		msg.rpg.chars[msg.author] = utils.createChar(msg.author, msg.content);
   		utils.replyMessage(msg, module.exports.say(msg, "char_init_success"));
   		module.exports.askClass(msg);
   	});
@@ -82,8 +83,8 @@ exports.askChar = function(msg) {
 };
 exports.listChars = function(msg) {
 	var chars = "";
-	for (i in rp[msg.channel].chars) {
-		var actchar = rp[msg.channel].chars[i];
+	for (i in msg.rpg.chars) {
+		var actchar = msg.rpg.chars[i];
 		chars = chars + "\r\n - " + actchar.name;
 	}
 	return chars;
@@ -92,8 +93,8 @@ exports.listClass = function(msg) {
 	var list = "";
 
   if (utils.require(msg, reqs.are_classes)) {
-  	for (i in rp[msg.channel].classes) {
-  		list = list + "\r\n - " + rp[msg.channel].classes[i].name;
+  	for (i in msg.rpg.classes) {
+  		list = list + "\r\n - " + msg.rpg.classes[i].name;
   	}
   }
 
@@ -107,16 +108,16 @@ exports.askClass = function(msg) {
 		utils.replyMessage(msg, module.exports.say(msg, "char_ask_class"));
 		module.exports.talk(msg, function(msg) {
 			var foundClass = -1;
-			for (i in rp[msg.channel].classes) {
-				if (msg.content.toLowerCase() == rp[msg.channel].classes[i].name.toLowerCase()) {
+			for (i in msg.rpg.classes) {
+				if (msg.content.toLowerCase() == msg.rpg.classes[i].name.toLowerCase()) {
 					foundClass = i;
 					break;
 				}
 			}
 			if (foundClass>-1) {
-				rp[msg.channel].chars[msg.author].classId = foundClass;
+				msg.rpg.chars[msg.author].classId = foundClass;
 				utils.replyMessage(msg, module.exports.say(msg, "char_ask_class_success"));
-				if (rp[msg.channel].chars[msg.author].specieId == -1) {
+				if (msg.rpg.chars[msg.author].specieId == -1) {
 					module.exports.askSpecie(msg);
 				}
 			} else {
@@ -130,8 +131,8 @@ exports.listSpecie = function(msg) {
 	var list = "";
 
   if (utils.require(msg, reqs.are_species)) {
-  	for (i in rp[msg.channel].species) {
-  		list = list + "\r\n - " + rp[msg.channel].species[i].name;
+  	for (i in msg.rpg.species) {
+  		list = list + "\r\n - " + msg.rpg.species[i].name;
   	}
   }
 
@@ -143,14 +144,14 @@ exports.askSpecie = function(msg) {
 		utils.replyMessage(msg, module.exports.say(msg, "char_ask_specie"));
 		module.exports.talk(msg, function(msg) {
 			var foundSpecie = -1;
-			for (i in rp[msg.channel].species) {
-				if (msg.content.toLowerCase() == rp[msg.channel].species[i].name.toLowerCase()) {
+			for (i in msg.rpg.species) {
+				if (msg.content.toLowerCase() == msg.rpg.species[i].name.toLowerCase()) {
 					foundSpecie = i;
 					break;
 				}
 			}
 			if (foundSpecie>-1) {
-				rp[msg.channel].chars[msg.author].specieId = foundSpecie;
+				msg.rpg.chars[msg.author].specieId = foundSpecie;
 				specie.applySpecieAttrs(msg, foundSpecie);
 				utils.replyMessage(msg, module.exports.say(msg, "char_ask_specie_success"));
 			} else {
@@ -164,12 +165,12 @@ exports.askSpecie = function(msg) {
 // NOTE: RED deprecated alert!
 exports.displayChar = function(msg, char) {
 	if (utils.require(msg, reqs.has_char | reqs.has_specie | reqs.has_class | reqs.are_classes | reqs.are_species)) {
-		var actChar = rp[msg.channel].chars[char];
+		var actChar = msg.rpg.chars[char];
 		var embed = {color: config.colors.player,
 			author: {name: actChar.name, icon_url: msg.author.avatarURL},
 			fields: []};
-		var actClass = rp[msg.channel].classes[actChar.classId];
-		var actSpecie = rp[msg.channel].species[actChar.specieId];
+		var actClass = msg.rpg.classes[actChar.classId];
+		var actSpecie = msg.rpg.species[actChar.specieId];
 		embed.fields.push({name: ("Class: " + actClass.name), value: actClass.desc});
 		embed.fields.push({name: ("Specie: " + actSpecie.name), value: actSpecie.desc});
 		var n = 0, stats = "";
@@ -183,13 +184,13 @@ exports.displayChar = function(msg, char) {
 		embed.fields.push({name: "Statistics", value: stats});
 		var lxp = utils.xp_per_level(actChar.lvl);
 		embed.fields.push({name: "Level " + actChar.lvl, value: "xp: " + Math.round(actChar.xp) + "/" + lxp});
-		embed.fields.push({name: "Skill points", value: actChar.skill_points + " points (" + rp[msg.channel].skill_points_per_level + " points per level)"});
+		embed.fields.push({name: "Skill points", value: actChar.skill_points + " points (" + msg.rpg.skill_points_per_level + " points per level)"});
 		utils.replyMessage(msg, {embed: embed});
 	}
 }
 exports.displayInv = function(msg) {
 	if (utils.require(msg, reqs.has_char | reqs.are_objects)) {
-		var actChar = rp[msg.channel].chars[msg.author];
+		var actChar = msg.rpg.chars[msg.author];
 		var embed = {
 			color: config.colors.player,
 			author: {name: actChar.name + "'s inventory'", icon_url: msg.author.avatarURL},
@@ -200,7 +201,7 @@ exports.displayInv = function(msg) {
 			var string = "";
 			for (item in actChar.inventory) {
 				if (actChar.inventory[item] !== null) {
-					string = string + "\r\n" + module.exports.displayItem(msg, rp[msg.channel].objects[actChar.inventory[item].id]);
+					string = string + "\r\n" + module.exports.displayItem(msg, msg.rpg.objects[actChar.inventory[item].id]);
 					if (actChar.inventory[item].quantity != 1) {
 						string = string + " (" + actChar.inventory[item].quantity + "x)";
 					}
@@ -242,9 +243,9 @@ exports.displayItem = function(msg, item, desc = false) {
 		}
 	}
 	if (desc || item.name.length < 24) {
-		var player = rp[msg.channel].chars[msg.author];
-		var specie = rp[msg.channel].species[player.specieId];
-		var holder_class = rp[msg.channel].classes[player.classId];
+		var player = msg.rpg.chars[msg.author];
+		var specie = msg.rpg.species[player.specieId];
+		var holder_class = msg.rpg.classes[player.classId];
 		var Titem = attrmgt.treat(item, specie, holder_class);
 		var statsFound = 0;
 		for (bs in config.baseStats) {
@@ -279,8 +280,8 @@ exports.displayItemFancy = function(msg, item, holder) {
 			embed.fields.push({name: "Class", value: "@**" + item.class + "**"});
 		}
 	}
-	var holder_specie = rp[msg.channel].species[holder.specieId];
-	var holder_class = rp[msg.channel].classes[holder.classId];
+	var holder_specie = msg.rpg.species[holder.specieId];
+	var holder_class = msg.rpg.classes[holder.classId];
 	var Titem = attrmgt.treat(item, holder_specie, holder_class);
 	var n = 0, stats = "";
 	for (stat in config.baseStats) {
@@ -330,7 +331,7 @@ exports.displayItemFancy = function(msg, item, holder) {
 }
 exports.displayRoom = function(msg) {
 	if (utils.require(msg, reqs.is_room | reqs.are_mobs | reqs.are_objects)) {
-		var actRoom = rp[msg.channel].room;
+		var actRoom = msg.rpg.room;
 		var embed = {
 			color: config.colors.dungeon,
 			title: "Room: *" + (actRoom.name || "Default") + "*",
@@ -340,12 +341,12 @@ exports.displayRoom = function(msg) {
 		if (actRoom.entities !== undefined) {
 			if (actRoom.entities.length > 0) {
 				for (i in actRoom.entities) {
-					var parent = rp[msg.channel].mobs[actRoom.entities[i].id];
+					var parent = msg.rpg.mobs[actRoom.entities[i].id];
 					if (parent != undefined) {
 						string = string + parent.name;
 						if (parent.HP != undefined) string = string + " (" + (actRoom.entities[i].HP | "Error") + "/" + (parent.HP[1] || parent.HP[0] || parent.HP) + ")";
 						if (actRoom.entities[i].holding != -1 && actRoom.entities[i].holding != undefined) {
-							var item = rp[msg.channel].objects[actRoom.entities[i].holding];
+							var item = msg.rpg.objects[actRoom.entities[i].holding];
 							if (item != undefined) string = string + " [" + item.name + "]";
 						}
 						if (Array.isArray(actRoom.entities[i].effects)) {
@@ -372,7 +373,7 @@ exports.displayRoom = function(msg) {
 			if (actRoom.items.length > 0) {
 				for (i in actRoom.items) {
 					if (actRoom.items[i] !== null) {
-						var parent = rp[msg.channel].objects[actRoom.items[i].id];
+						var parent = msg.rpg.objects[actRoom.items[i].id];
 						string = string + parent.name;
 
 						string = string + "\r\n";
@@ -409,7 +410,7 @@ exports.displayRoom = function(msg) {
 	}
 }
 exports.displaySkills = function(msg, target) {
-	var actChar = rp[msg.channel].chars[target];
+	var actChar = msg.rpg.chars[target];
 	var embed = {
 		color: config.colors.player,
 		author: {name: "Skill points: " + actChar.name, icon_url: msg.author.avatarURL},
@@ -426,7 +427,7 @@ exports.displaySkills = function(msg, target) {
 		}
 	});
 	embed.fields.push({"name": "Stats", "value": stats});
-	embed.fields.push({"name": "Points", "value": actChar.skill_points + " (" + rp[msg.channel].skill_points_per_level + " points per level)"});
+	embed.fields.push({"name": "Points", "value": actChar.skill_points + " (" + msg.rpg.skill_points_per_level + " points per level)"});
 	utils.replyMessage(msg, {embed: embed});
 }
 

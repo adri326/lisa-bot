@@ -2,8 +2,8 @@ const utils = require("../utils");
 const io = require("../io");
 
 exports.findSpell = function(msg, string) {
-  for (spell in rp[msg.channel].spells) {
-    var actSpell = rp[msg.channel].spells[spell];
+  for (spell in msg.rpg.spells) {
+    var actSpell = msg.rpg.spells[spell];
     for (match in actSpell.matches) {
       var re = new RegExp(actSpell.matches[match].when, "i");
       var result = re.exec(string);
@@ -21,7 +21,7 @@ exports.findSpell = function(msg, string) {
 }
 
 exports.executeSpell = function(msg, spell) {
-  var caster = rp[msg.channel].chars[msg.author];
+  var caster = msg.rpg.chars[msg.author];
   if (caster.MP >= spell.MP) {
     caster.MP -= spell.MP;
     if (utils.execute_pseudocode(msg, spell.action, spell.data)) {

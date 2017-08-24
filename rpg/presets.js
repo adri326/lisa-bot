@@ -27,7 +27,7 @@ exports.import = function(msg, name) { // Import everything from the preset %nam
   var preset = presets[name || presets[utils.getObjectID(presets, name)]];
   if (preset != undefined) {
     for (setting in config.settingList) {
-      var actSetting = rp[msg.channel][config.settingList[setting]];
+      var actSetting = msg.rpg[config.settingList[setting]];
       var foundElements = [];
       for (item in actSetting) {
         var id = utils.getObjectID(preset[config.settingList[setting]], actSetting[item].name);
@@ -59,7 +59,7 @@ exports.remove = function(msg, name) {
   var preset = presets[name || presets[utils.getObjectID(presets, name)]];
   if (preset != undefined) {
     for (setting in config.settingList) {
-      var actSetting = rp[msg.channel][config.settingList[setting]];
+      var actSetting = msg.rpg[config.settingList[setting]];
       for (item = 0; item < actSetting.length; item++) {
         if (actSetting[item].source == preset.id) {
           actSetting.splice(item, 1);
@@ -72,4 +72,20 @@ exports.remove = function(msg, name) {
   else {
     utils.replyMessage(msg, say(msg, "error_preset_not_found"));
   }
+}
+exports.displayPresets = function displayPresets(msg, page_) {
+  var maxpresets = Object.keys(presets).length;
+  var maxpage = Math.ceil(maxpresets/config.itemsPerPage);
+  var page = Math.min(Math.max(Math.round(~~page_), 1), maxpage);
+  var embed = {
+    title: "Presets list (" + page + "/" + maxpage + ")",
+    fields: []
+  };
+  for (preset = (page-1)*config.itemsPerPage; preset < Math.min(page*config.itemsPerPage, maxpresets); preset++) {
+    var actPreset = presets[Object.keys(presets)[preset]];
+    if (actPreset != undefined) {
+      embed.fields.push({name: actPreset.id + " (" + actPreset.name + ")", value: actPreset.desc});
+    }
+  }
+  return embed;
 }

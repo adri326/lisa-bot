@@ -2,8 +2,8 @@ const utils = require("../utils");
 
 exports.applySpecieAttrs = function(msg, specieId) {
 	if (utils.require(msg, reqs.has_char | reqs.are_species)) {
-		var char = rp[msg.channel].chars[msg.author];
-		var specie = rp[msg.channel].species[specieId];
+		var char = msg.rpg.chars[msg.author];
+		var specie = msg.rpg.species[specieId];
 		if (specie.base != null) {
 			char.ATK = specie.attrs.ATK | config.defaults.ATK;
 			char.DEF = specie.attrs.DEF | config.defaults.DEF;

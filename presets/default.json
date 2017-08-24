@@ -1,7 +1,7 @@
 {
   "id": "default",
   "name": "Default",
-  "desc": "Default preset pack",
+  "desc": "The default preset pack, it offers basic items, enemies, classes and species. Recommended to have",
 
   "mobs": [
     {
