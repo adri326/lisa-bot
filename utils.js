@@ -1,4 +1,5 @@
 const io = require("./io");
+const combat = require("./rpg/combat");
 const wildstring = require("wildstring");
 
 exports.require = function(msg, requirements = 0, display = true) {
@@ -138,7 +139,7 @@ exports.getObjectID = function(obj_list, name, sub_obj_function = (key, index) =
 	if (obj_list !== null && obj_list !== undefined)
 	obj_list.forEach((key, index) => {
 		if (sub_obj_function(key, index) && typeof(key.name) === "string" && typeof(name) === "string") {
-			if (key.name.toLowerCase() == name.toLowerCase() || key.id == name) {
+			if (key.name.toLowerCase() == name.toLowerCase() || key.id == name || key.name.toLowerCase().replace("_", " ") == name.toLowerCase().replace("_", " ")) {
 				steps[0] = index;
 			}
 			if (wildstring.match(name.toLowerCase(), key.name.toLowerCase())) {
@@ -375,8 +376,8 @@ exports.execute_pseudocode = function(msg, code, match) {
 			// Tests
 			case cmd == "if_room_cleared":
 				if (rp[msg.channel].room != undefined) {
-					if (rp[msg.channel].room.mobs != undefined) {
-						if (rp[msg.channel].room.mobs.length > 0) {
+					if (rp[msg.channel].room.entities != undefined) {
+						if (rp[msg.channel].room.entities.length > 0) {
 							return false;
 						}
 					}
@@ -449,15 +450,12 @@ exports.execute_pseudocode = function(msg, code, match) {
 			case (/^summon\(.*\)$/).test(cmd):
 				var r = module.exports.find_args(cmd);
 				if (r !== null) {
-					var foundEntity = null;
-					rp[msg.channel].mobs.forEach((o, i) => {
-						if (o.name == r[1]) {
-							foundEntity = i;
-						}
-					});
-					if (foundEntity !== null) {
+					var foundEntity = module.exports.getObjectID(rp[msg.channel].mobs, r[0]);
+					console.log(foundEntity + ": " + r[0]);
+					if (foundEntity != -1) {
 						var actMob = rp[msg.channel].mobs[foundEntity];
-						rp[msg.channel].room.entities.push({id: foundEntity, HP: actMob.HP});
+						//rp[msg.channel].room.entities.push({id: foundEntity, HP: actMob.HP});
+						module.exports.spawn_mob(msg, rp[msg.channel].room, foundEntity);
 					}
 				}
 				break;

@@ -749,7 +749,7 @@
       "class": "invoker",
       "subclass": "boss",
       "attrs": [
-        {"name": "on_use", "values": ["summon(The Kraken)"]}
+        {"name": "on_use", "values": ["summon(The_Kraken)"]}
       ],
       "difficulty": 6,
       "rate": 0.2

@@ -114,24 +114,24 @@
 			"help": {
 				"_": {
 					"title": "Available commands",
-					"description": "Those are all the commands I know, they all start with l!",
+					"description": "Those are all the commands I know, they all start with `l!` (Example: `l!help` triggers this message)",
 					"fields": [
 						{"name": "help *[keyword]*", "value": "Display a help message"},
-						{"name": "rp", "value": "A fancy RPG game, see usage with `help rp`"}
+						{"name": "rpg", "value": "A fancy RPG game, see usage with `l!help rp`"}
 					]
 				},
-				"rp": {
+				"rpg": {
 					"title": "Help: RPG",
 					"description": "A fancy RPG games, with combat, inventory and levels management. Features very customisable objects, mobs, classes and species",
 					"fields": [
 						{"name": "char", "value": "Character management"},
 						{"name": "inv", "value": "Inventory management"},
 						{"name": "room", "value": "Usage: `room [next]`; display the room or move to the next room"},
-						{"name": "admin", "value": "All the more advanced commandes used by the admins, see `help rp admin` for more informations"},
+						{"name": "admin", "value": "All the more advanced commandes used by the admins, see `l!help rp admin` for more informations"},
 						{"name": "attack", "value": "Attack an enemy in the room you are in"}
 					]
 				},
-				"rp_char": {
+				"rpg_char": {
 					"title": "Help: RPG `char`",
 					"description": "Character management",
 					"fields": [
@@ -142,7 +142,7 @@
 						{"name": "specie", "value": "Set your character's specei. **WARNING**: It might reset your character's stats"}
 					]
 				},
-				"rp_inv": {
+				"rpg_inv": {
 					"title": "Help: RPG `inv`",
 					"description": "Inventory management",
 					"fields": [
@@ -153,7 +153,7 @@
 						{"name": "hold *<item>*", "value": "Hold an item (the item that was holded goes back in your inventory)"}
 					]
 				},
-				"rp_room": {
+				"rpg_room": {
 					"title": "Help: RPG `room`",
 					"description": "Room management",
 					"fields": [
@@ -161,7 +161,7 @@
 						{"name": "next", "value": "Move to the next room if the room doesn't have any enemies left"}
 					]
 				},
-				"rp_admin": {
+				"rpg_admin": {
 					"title": "Help: RPG `admin`",
 					"description": "All the more advanced commands",
 					"fields": [
@@ -170,7 +170,7 @@
 						{"name": "summon *<mob_name or mob_id>", "value": "Summon an enemy in the room"},
 						{"name": "kill *<mob_name or mob_id>", "value": "Kill an enemmy in the room"},
 						{"name": "presets", "value": "Preset management"},
-						{"name": "object, specie, class, mob", "value": "Manages the objects, species, classes and mobs. See `help admin assets` for help about this"},
+						{"name": "object, specie, class, mob", "value": "Manages the objects, species, classes and mobs. See `l!help admin assets` for help about this"},
 						{"name": "turn", "value": "Adds 1 to the turn amount"}
 					]
 				}
@@ -246,7 +246,7 @@
 			"error_stat_syntax": "This is not an available stat, sorry",
 			"error_dead": "Err... Sorry? Deads are dead, they can't do that!",
 			"error_item_not_in_room": "Sorry, I couldn't find the item you were looking for!",
-			"error_use_item": "Sorry, the item you were trying to use cannt be used that way!",
+			"error_use_item": "Sorry, the item you were trying to use cannot be used that way!",
 			"error_not_armor": "This is not an armor!"
 		}
 	},

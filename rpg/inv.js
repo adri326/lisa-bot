@@ -61,7 +61,7 @@ exports.hold = function(msg, item = "") {
         actChar.inventory.push(actChar.holding);
       actChar.holding = actChar.inventory[objectId];
       actChar.inventory.splice(objectId, 1);
-      utils.replyMessage(msg, io.say(msg, "hold_success", {name: rp[msg.channel].objects[actChar.holding].name}));
+      utils.replyMessage(msg, io.say(msg, "hold_success", {name: rp[msg.channel].objects[actChar.holding.id].name}));
       rp[msg.channel].turn_amount += combat.action_time(msg, "hold");
     } else {
       utils.replyMessage(msg, "Item not found!");
@@ -78,7 +78,7 @@ exports.equip = function(msg, item = "") {
           actChar.inventory.push(actChar.equipped);
         actChar.equipped = actChar.inventory[objectId];
         actChar.inventory.splice(objectId, 1);
-        utils.replyMessage(msg, io.say(msg, "equip_success", {name: rp[msg.channel].objects[actChar.equipped].name}));
+        utils.replyMessage(msg, io.say(msg, "equip_success", {name: rp[msg.channel].objects[actChar.equipped.id].name}));
         rp[msg.channel].turn_amount += combat.action_time(msg, "equip");
       }
       else {

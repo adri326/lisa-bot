@@ -194,5 +194,6 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 }
 
 exports.mob_action = function(msg, mobID) {
-	return module.exports.combat(msg, msg.author, mobID, true, false);
+	if (rp[msg.channel].room.entities[mobID] != undefined) return module.exports.combat(msg, msg.author, mobID, true, false);
+	return "";
 }

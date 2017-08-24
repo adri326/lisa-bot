@@ -72,7 +72,7 @@ talking = [{
 rp = [];
 presets = [];
 
-function initRP(msg) {
+initRP = function initRP(msg) {
 	utils.replyMessage(msg, io.say("init_alert"));
 	rp[msg.channel] = utils.createRP(msg.channel);
 	utils.replyMessage(msg, io.say("init_success"));
@@ -130,7 +130,7 @@ bot.on("message", msg => {
 			if (rp[msg.channel.id] != undefined && rp[msg.channel.id] !== null) {
 				if (rp[msg.channel.id].rp_shortcut) {
 					if (msg_t.content.startsWith("!")) {
-						msg_t.content = msg_t.content.replace(/\!/, "l!rp ");
+						msg_t.content = msg_t.content.replace(/\!/, "l!rpg ");
 					}
 				}
 			}
@@ -212,7 +212,7 @@ function treatMsg(msg) {
 			}
 		}
 
-		if (command.toLowerCase().startsWith("rp")) {
+		if (command.toLowerCase().startsWith("rpg")) {
 			rpg(msg, commandParts, command);
 		}
 		else if (command.toLowerCase().startsWith("col")) {

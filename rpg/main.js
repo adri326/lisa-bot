@@ -1,4 +1,6 @@
 const path = require("path");
+const CircularJSON = require("circular-json");
+
 const utils = require("../utils");
 const io = require("../io");
 const spells = require(path.join(__dirname, "/spells"));
@@ -338,6 +340,14 @@ module.exports = function main(msg, commandParts, command) {
                 actItem.quantity = 1;
               }
             }
+          }
+        }
+        for (mob = 0; mob < rp[msg.channel].room.entities; mob++) {
+          var actMob = rp[msg.channel].room.entities[mob];
+          if (actMob === null || actMob === undefined) {
+            rp[msg.channel].room.items.splice(mob, 1);
+            mob--;
+            amount++;
           }
         }
         utils.replyMessage(msg, io.say(msg, "admin_tidy_success", {n: amount}));
@@ -704,7 +714,7 @@ module.exports = function main(msg, commandParts, command) {
     else if (commandParts[1] == "use") {
       var holding = true;
       var actChar = rp[msg.channel].chars[msg.author];
-      var actObj = rp[msg.channel].objects[actChar.holding];
+      var actObj = rp[msg.channel].objects[actChar.holding.id];
       var objectId = -1;
       if (commandParts[2] != undefined && commandParts[2] !== null) {
         objectId = utils.getObjectID(utils.getIDMatchingObjects(rp[msg.channel].objects, actChar.inventory), commandParts[2]);
@@ -736,7 +746,7 @@ module.exports = function main(msg, commandParts, command) {
         rp[msg.channel].turn_amount += combat.action_time(msg, "use_" + actObj.class + "/" + actObj.subclass) ||
           combat.action_time(msg, "use_" + actObj.class) ||
           combat.action_time(msg, "use");
-      } else {
+      } else if (objectId != -1) {
         utils.replyMessage(msg, io.say(msg, "error_use_item"));
       }
     }
