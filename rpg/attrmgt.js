@@ -53,15 +53,8 @@ exports.executeAttr =  function(obj, attr, is_object) {
     var mod_val, stat_name;
     if (attr.name == "obj_stat_mult" || attr.name == "obj_stat_add") {
       // Big, ugly, class verification
-      console.log(typeof(attr.values[0]) + ": " + attr.values[0]);
-      if (attr.values[0] == "*" ||
-        attr.values[0].startsWith("@") &&
-        attr.values[0].slice(1) == obj.class
-        && (
-          ! (attr.values[0].indexOf("/") > -1) ||
-          attr.values[0].split("/")[1] == obj.subclass
-        ) ||
-        attr.values[0] == obj.name) {
+      //console.log(typeof(attr.values[0]) + ": " + attr.values[0]);
+      if (module.exports.isSelected(attr.values[0], obj)) {
           mod_val = parseFloat(attr.values[2]);
           stat_name = attr.values[1];
       }
@@ -78,4 +71,27 @@ exports.executeAttr =  function(obj, attr, is_object) {
       }
     }
   }
+}
+module.exports.isSelected = function isSelected(selecter, obj) {
+  var result = false;
+  if (selector == "*") result = true;
+  if (selector.startsWith("@")) {
+    var subselector = selector.slice("/");
+    if (subselector[0].startsWith("@!")) {
+      result = result && subselector[0].slice(2) != obj.class;
+    }
+    else {
+      result = result && subselector[0].slice(1) == obj.class;
+    }
+    if (subselector[1] != undefined) {
+      if (subselector[1].startsWith("!")) {
+        result = result && subselector[1].slice(1) != obj.subclass;
+      }
+      else {
+        result = result && subselector[1] == obj.subclass
+      }
+    }
+  }
+  if (selector == obj.name) result = true;
+  return result;
 }

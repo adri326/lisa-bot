@@ -1,0 +1,79 @@
+{
+  "id": "advanced_species",
+  "name": "Advanced species",
+  "desc": "Some funny business is going on here...",
+  "species": [
+    {
+      "name": "Cat",
+      "desc": "Felidae; **Felis catus**"
+    },
+    {
+      "name": "Tiger",
+      "desc": "Felidae; **Panthera tigris**",
+      "ATK": 3
+    },
+    {
+      "name": "Cheetah",
+      "desc": "Felidae; **Acinonyx jubatus**",
+      "VIT": 3
+    },
+    {
+      "name": "Hyena",
+      "desc": "Hyaenidae; **Hyaena**"
+    },
+    {
+      "name": "Ocelot",
+      "desc": "Felidae; **Leopardus pardalis**",
+      "VIT": 2
+    },
+    {
+      "name": "Lynx",
+      "desc": "Felidae; **Lynx lynx**"
+    },
+    {
+      "name": "Dog",
+      "desc": "Canidae; **Canis familiaris**"
+    },
+    {
+      "name": "Wolf",
+      "desc": "Canidae; **Canis lupus**",
+      "ATK": 3,
+      "DEF": 2,
+      "STR": 2
+    },
+    {
+      "name": "Coyote",
+      "desc": "Canidae; **Canis latrans**"
+    },
+    {
+      "name": "Red fox",
+      "desc": "Canidae; **Vulpes vulpes**"
+    },
+    {
+      "name": "Arctic fox",
+      "desc": "Canidae; **Vulpes lagopus**"
+    },
+    {
+      "name": "Gray fox",
+      "desc": "Canidae; **Urocyon cinereoargenteus**"
+    },
+    {
+      "name": "Owl",
+      "desc": "Aves; **Strigiformes**"
+    },
+    {
+      "name": "Falcon",
+      "desc": "Aves; **Falconidae**"
+    },
+    {
+      "name": "Parrot",
+      "desc": "Aves; **Psittaciformes**"
+    },
+    {
+      "name": "Shark",
+      "desc": "**Selachimorpha**",
+      "ATK": 3,
+      "STR": 2
+    }
+  ]
+}

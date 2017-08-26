@@ -769,5 +769,91 @@
       "subclass": "brewing",
       "attrs": []
     }
+  ],
+  "species": [
+    {
+      "name": "Dwarf",
+      "desc": "Dwarves are smaller than humans, but considerably stronger. They are better with axes",
+      "attrs": [
+        {"name": "obj_stat_add", "values": ["@hammer", "ATK", "1"]},
+        {"name": "obj_stat_add", "values": ["@hammer", "VIT", "2"]},
+        {"name": "obj_stat_add", "values": ["@armor", "VIT", "1"]}
+      ],
+      "DEF": 2,
+      "VIT": 0,
+      "STR": 2
+    },
+    {
+      "name": "Elf",
+      "desc": "Elves are tall human-like creatures, who usually live in forests. They live about a 1000 years; they are more focused and have more strength than humans.\r\nThey are especially good at using daggers and bows",
+      "attrs": [
+        {"name": "obj_stat_mult", "values": ["@bow", "ATK", "1.4"]},
+        {"name": "obj_stat_add", "values": ["@bow", "VIT", "2"]},
+        {"name": "obj_stat_add", "values": ["@dagger", "ATK", "1"]},
+        {"name": "obj_stat_add", "values": ["@dagger", "DEF", "2"]}
+      ],
+      "ATK": 3,
+      "VIT": 2
+    },
+    {
+      "name": "Hobbit",
+      "desc": "Hobbits are little humans. They don't have any special attribute",
+      "DEF": 2
+    },
+    {
+      "name": "Ent",
+      "desc": "Ents are tree-looking enormous humanoïds. They are very slow and live very long, but are incredibly strong",
+      "ATK": 5,
+      "DEF": 3,
+      "VIT": -2,
+      "AGI": 0,
+      "STR": 6
+    },
+    {
+      "name": "Vampire",
+      "desc": "Vampires looks like humans and have approximatively their size. They are much stronger and have longer canines, since they feed themself with the blood of other livings",
+      "ATK": 4,
+      "DEF": 3,
+      "VIT": 2,
+      "AGI": 0
+    },
+    {
+      "name": "Werewolf",
+      "desc": "Werewolves are humans who got bitten by another werewolf. Every person they bite will become a werewolf. They are very strong and resistive",
+      "ATK": 5,
+      "DEF": 3,
+      "VIT": 2,
+      "STR": 4
+    }
+  ],
+  "classes": [
+    {
+      "name": "Knight",
+      "desc": "Knights are a bit stronger with armors, spears and swords",
+      "attrs": [
+        {"name": "obj_stat_add", "values": ["@sword", "ATK", "2"]},
+        {"name": "obj_stat_add", "values": ["@sword", "VIT", "1"]},
+        {"name": "obj_stat_add", "values": ["@spear", "ATK", "3"]},
+        {"name": "obj_stat_add", "values": ["@spear", "VIT", "2"]},
+        {"name": "obj_stat_add", "values": ["@armor", "DEF", "1"]}
+      ]
+    },
+    {
+      "name": "Archer",
+      "desc": "Archers are very great with bows, but not with the other weapons",
+      "attrs": [
+        {"name": "obj_stat_add", "values": ["@!bow", "ATK", "-1"]},
+        {"name": "obj_stat_add", "values": ["@!bow", "DEF", "-1"]},
+        {"name": "obj_stat_add", "values": ["@bow", "ATK", "3"]},
+        {"name": "obj_stat_add", "values": ["@bow", "VIT", "2"]}
+      ]
+    },
+    {
+      "name": "Wizard",
+      "desc": "Wizards masters the magic. Not only do they cast spells, but they are also great at brewing and other various stuff",
+      "attrs": [
+        {"name": "magic_sensivity", "values": ["4"]}
+      ]
+    }
   ]
 }
