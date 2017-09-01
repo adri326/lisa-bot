@@ -26,7 +26,10 @@ module.exports = function main(msg, commandParts, command) {
       msg.rpg.turn_amount = 0;
     }
 
-    if (commandParts[1] == "char") {
+    if (commandParts[1] == "info") {
+      displayInfos(msg);
+    }
+    else if (commandParts[1] == "char") {
       if (commandParts[2] == "create") {
         io.askChar(msg);
       }
@@ -232,28 +235,22 @@ module.exports = function main(msg, commandParts, command) {
 
           if (msg.rpg[setting[0]] !== null || printableSettings.indexOf(setting[0]) >= 0) {
             if (setting[1]=="true") {
-
               setting[1] = true;
-
-            } else if (setting[1]=="false") {
-
+            }
+            else if (setting[1]=="false") {
               setting[1] = false;
-
             }
             if (Array.isArray(msg.rpg[setting[0]])) {
-
               setting[1] = setting[1].split(",");
-
             }
             if (setting[1].startsWith("_")) {
               setting[1] = parseFloat(setting[1].slice(1));
             }
             console.log(setting[0] + ": "+ setting[1]);
             msg.rpg[setting[0]] = setting[1];
-
           }
-
-        } else {
+        }
+        else {
           // Print active settings
 
           var string = "";
@@ -414,7 +411,6 @@ module.exports = function main(msg, commandParts, command) {
         }
         else if (commandParts[3] == "list") {
           // NOTE: List elements w/ or w/o their attrs
-          // TODO: Separate in multiple messages
           var mpages = Math.ceil(actSetting.length/config.itemsPerPage),
           page = Math.max(Math.min(parseInt(commandParts[4] || "1") || 1, mpages), 1);
           var embed = {
@@ -469,96 +465,112 @@ module.exports = function main(msg, commandParts, command) {
           }
         }
         else if (commandParts[3] == "attrs") {
-          // TODO: fix that stuff, especially the "everything's alright" verification
-          // TODO: add isNaN everywhere it needs it
-          // TODO: add object_found everywhere it needs it
           if (commandParts[4] == "create") {
-
             utils.replyMessage(msg, "Please input the `" + commandParts[2] + "`, the `name` and the `value`s");
             var talk_obj = io.talk(msg, msg => {
               var actSetting = io.getTalking(msg).actSetting;
               var command = utils.splitCommand(msg.content);
               var found = false;
-              for (i in actSetting) {
-                if (actSetting[i].name == command[0]) {
-                  if (actSetting[i].attrs == null || actSetting[i].attrs == undefined) {
-                    actSetting[i].attrs = [];
-                  }
-                  actSetting[i].attrs.push({"name": command[1], "values": command.slice(2)});
-                  utils.replyMessage(msg, "Successfully added the `" + command[1] + "` to the `" + command[0] + "` " + commandParts[2] + "!");
-                  found = true;
-                  break;
+              if (Array.isArray(command) && (command || []).length >= 2) {
+                for (i in actSetting) {
+                  if (actSetting[i].name == command[0]) {
+                    if (actSetting[i].attrs == null || actSetting[i].attrs == undefined) {
+                      actSetting[i].attrs = [];
+                    }
+                    actSetting[i].attrs.push({"name": command[1], "values": command.slice(2)});
+                    utils.replyMessage(msg, "Successfully added the `" + command[1] + "` to the `" + command[0] + "` " + commandParts[2] + "!");
+                    found = true;
+                    break;
 
+                  }
+                }
+                if (!found) {
+                  utils.replyMessage(msg, "Could't find the target to link the attribute!");
                 }
               }
-              if (!found)
-              utils.replyMessage(msg, "Could't find the target to link the attribute!");
+              else {
+                utils.replyMessage(msg, io.say(msg, "error_syntax"));
+              }
             });
 
             talk_obj.actSetting = actSetting;
 
           }
           else if (commandParts[4] == "edit") {
-
             utils.replyMessage(msg, "Please input the `" + commandParts[2] + "`, the `id`, the `name` and the `value`s");
 
             var talk_obj = io.talk(msg, msg => {
               var actSetting = io.getTalking(msg).actSetting;
               var command = utils.splitCommand(msg.content);
-              for (i in actSetting) {
-                if (actSetting[i].name == command[0]) {
+              if (Array.isArray(command) && (command || []).length >= 3) {
+                for (i in actSetting) {
+                  if (actSetting[i].name == command[0]) {
 
-                  var specie = actSetting[i];
-                  var ID = parseInt(command[1]);
-                  if (ID != null && !isNaN(ID)) {
+                    var specie = actSetting[i];
+                    var ID = parseInt(command[1]);
+                    if (ID != null && !isNaN(ID)) {
 
-                    specie.attrs[ID] = {"name": command[2], "values": command.slice(3)};
-                    utils.replyMessage(msg, "Successfully modified the attribute [" + command[1] + "] to the `" + command[0] + "` " + commandParts[2] + "!");
+                      specie.attrs[ID] = {"name": command[2], "values": command.slice(3)};
+                      utils.replyMessage(msg, "Successfully modified the attribute [" + command[1] + "] to the `" + command[0] + "` " + commandParts[2] + "!");
 
-                  } else {
+                    } else {
 
-                    utils.replyMessage(msg, "Couldn't read the ID, aborting!");
+                      utils.replyMessage(msg, "Couldn't read the ID, aborting!");
 
+                    }
                   }
                 }
+              }
+              else {
+                utils.replyMessage(msg, io.say("error_syntax"));
               }
             });
 
             talk_obj.actSetting = actSetting;
           }
           else if (commandParts[4] == "remove") {
-            utils.replyMessage(msg, "Please in the `" + commandParts[2] + "` and the `id`");
+            utils.replyMessage(msg, "Please input the `" + commandParts[2] + "` and the `id`");
             var talk_obj = io.talk(msg, msg => {
               var actSetting = io.getTalking(msg).actSetting;
               var command = utils.splitCommand(msg.content);
-              for (i in actSetting) {
-                if (actSetting[i].name == command[0]) {
-                  var ID = parseInt(command[1]);
-                  if (ID != null && !isNaN(ID)) {
-                    actSetting[i].attrs.splice(ID);
-                    utils.replyMessage(msg, "Successfully removed the attr [" + ID + "] from " + command[0]);
-                  } else {
-                    utils.replyMessage(msg, "Couldn't read the ID, aborting!");
+              if (Array.isArray(command) && (command || []).length >= 2) {
+                for (i in actSetting) {
+                  if (actSetting[i].name == command[0]) {
+                    var ID = parseInt(command[1]);
+                    if (ID != null && !isNaN(ID)) {
+                      actSetting[i].attrs.splice(ID);
+                      utils.replyMessage(msg, "Successfully removed the attr [" + ID + "] from " + command[0]);
+                    } else {
+                      utils.replyMessage(msg, "Couldn't read the ID, aborting!");
+                    }
+                    break;
                   }
-                  break;
                 }
+              }
+              else {
+                utils.replyMessage(msg, io.say(msg, "error_syntax"));
               }
             });
             talk_obj.actSetting = actSetting;
           }
         }
         else if (commandParts[3] == "set") {
-          utils.replyMessage(msg, "Modifying a " + commandParts[2] + ", input the `name`, the value `name` and its `content`");
+          utils.replyMessage(msg, "Modifying a " + commandParts[2] + ", input the `name`, the value's `name` and its `content`");
           var talk_obj = io.talk(msg, msg => {
             var actSetting = io.getTalking(msg).actSetting;
             var command = utils.splitCommand(msg.content);
-            if (config.mobStats.indexOf(command[1]) > -1) {
-              for (i in actSetting) {
-                if (command[0]==actSetting[i].name) {
-                  actSetting[i][command[1]] = parseFloat(command[2]);
-                  utils.replyMessage(msg, "Successfully modified / added the value `" + command[1] + "` of " + command[0]);
+            if (Array.isArray(command) && (command || []).length >= 2) {
+              if (config.mobStats.indexOf(command[1]) > -1) {
+                for (i in actSetting) {
+                  if (command[0]==actSetting[i].name) {
+                    actSetting[i][command[1]] = parseFloat(command[2]);
+                    utils.replyMessage(msg, "Successfully modified / added the value `" + command[1] + "` of " + command[0]);
+                  }
                 }
               }
+            }
+            else {
+              utils.replyMessage(msg, io.say(msg, "error_syntax"));
             }
           });
           talk_obj.actSetting = actSetting;
@@ -571,10 +583,10 @@ module.exports = function main(msg, commandParts, command) {
           var mob = msg.rpg.mobs[mobId];
           var actRoom = msg.rpg.room;
           actRoom.entities.push({id: mobId, HP: mob.HP});
-          utils.replyMessage(msg, "Successfully summoned the mob " + name + "!");
+          utils.replyMessage(msg, io.say(msg, "mob_summon_success", {name}));
         }
         else {
-          utils.replyMessage(msg, "I couldn't find the mob you were looking for!");
+          utils.replyMessage(msg, io.say(msg, "error_mob_name_syntax"));
         }
       }
       else if (commandParts[2] == "kill") {
@@ -589,10 +601,10 @@ module.exports = function main(msg, commandParts, command) {
           var mob = msg.rpg.mobs[mobId];
           var actRoom = msg.rpg.room;
           actRoom.entities.splice(mobId, 1);
-          utils.replyMessage(msg, "Successfully killed the mob " + name + "!");
+          utils.replyMessage(msg, io.say(msg, "mob_kill_success", {name}));
         }
         else {
-          utils.replyMessage(msg, "I couldn't find the mob you were looking for!");
+          utils.replyMessage(msg, io.say(msg, "error_mob_name_syntax"));
         }
       }
       else if (commandParts[2] == "presets") {
@@ -852,4 +864,16 @@ module.exports = function main(msg, commandParts, command) {
       }})
     }
   }
+}
+
+function displayInfos(msg) {
+  var embed = {
+    title: msg.rpg.name + "",
+    description: "Informations and statistics",
+    fields: []
+  };
+  embed.fields.push({name: "Difficulty", value: "" + Math.round(msg.rpg.difficulty*10)/10});
+  embed.fields.push({name: "Member count", value: "" + Object.keys(msg.rpg.chars).length});
+  embed.fields.push({name: "Assets count", value: "" + (msg.rpg.objects.length + msg.rpg.species.length + msg.rpg.classes.length + msg.rpg.mobs.length + msg.rpg.spells.length)});
+  utils.replyMessage(msg, {embed: embed});
 }
