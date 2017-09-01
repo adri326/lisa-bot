@@ -59,7 +59,7 @@ exports.hold = function(msg, item = "") {
     if (objectId != -1) {
       if (actChar.holding != -1 && actChar.holding != undefined)
         actChar.inventory.push(actChar.holding);
-      actChar.holding = actChar.inventory[objectId];
+      actChar.holding = Object.assign({level: 1, xp: 0}, actChar.inventory[objectId]);
       actChar.inventory.splice(objectId, 1);
       utils.replyMessage(msg, io.say(msg, "hold_success", {name: msg.rpg.objects[actChar.holding.id].name}));
       msg.rpg.turn_amount += combat.action_time(msg, "hold");
@@ -76,7 +76,7 @@ exports.equip = function(msg, item = "") {
       if (msg.rpg.objects[actChar.inventory[objectId].id].class == "armor") {
         if (actChar.equipped != -1 && actChar.equipped != undefined)
           actChar.inventory.push(actChar.equipped);
-        actChar.equipped = actChar.inventory[objectId];
+        actChar.equipped = Object.assign({level: 1, xp: 0}, actChar.inventory[objectId]);
         actChar.inventory.splice(objectId, 1);
         utils.replyMessage(msg, io.say(msg, "equip_success", {name: msg.rpg.objects[actChar.equipped.id].name}));
         msg.rpg.turn_amount += combat.action_time(msg, "equip");

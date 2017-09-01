@@ -312,7 +312,7 @@ module.exports = function main(msg, commandParts, command) {
               item--;
               amount++;
             } else {
-              if (actItem.id === null || actItem.id === undefined) {
+              if (actItem.id === null || actItem.id === undefined || msg.rpg.objects[actItem.id] === undefined && actChar.inventory.length > 1) {
                 actChar.inventory.splice(item, 1);
                 item--;
                 amount++;

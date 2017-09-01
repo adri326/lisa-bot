@@ -1,16 +1,17 @@
-var parent = module.parent;
-const utils = require("./utils");
-const attrmgt = require("./rpg/attrmgt");
-const specie = require("./rpg/specie");
-const combat = require("./rpg/combat");
+const path = require("path");
 const fs = require("fs");
 const CircularJSON = require("circular-json");
 const crypto = require("crypto");
 
+const utils = require("./utils");
+const attrmgt = require("./rpg/attrmgt");
+const specie = require("./rpg/specie");
+const combat = require("./rpg/combat");
+
 
 exports.say = function(msg, msg_name, msg_info = {}) {
 	// TODO: undefined-proof that shit
-	var string = config.lang[lang][msg_name];
+	var string = lang[module.exports.langName(msg.rpg.lang)][msg_name];
   if (string !== undefined) {
   	try {
   		if (string.indexOf("{{NAME}}")>-1) // Replace {{NAME}} by the author's character name TODO: add fallback on the user's pseudo
@@ -200,29 +201,43 @@ exports.displayInv = function(msg) {
 		if (actChar.inventory != undefined && actChar.inventory.length != 0) {
 			var string = "";
 			for (item in actChar.inventory) {
-				if (actChar.inventory[item] !== null) {
-					string = string + "\r\n" + module.exports.displayItem(msg, msg.rpg.objects[actChar.inventory[item].id]);
-					if (actChar.inventory[item].quantity != 1) {
-						string = string + " (" + actChar.inventory[item].quantity + "x)";
+				if (actChar.inventory[item] !== null && actChar.inventory[item] != undefined) {
+					var object = combat.calc_item_stats(msg, actChar.inventory[item].id, actChar.inventory[item].level);
+					if (object != undefined) {
+						string = string + "\r\n" + module.exports.displayItem(msg, object);
+						if (actChar.inventory[item].quantity != 1) {
+							string = string + " (" + actChar.inventory[item].quantity + "x)";
+						}
 					}
 				}
 			}
-			embed.fields.push({name: "Inventory", value: string});
+			if (string == "") {
+				embed.fields.push({name: "Inventory", value: "*Empty*"});
+			}
+			else {
+				embed.fields.push({name: "Inventory", value: string});
+			}
 		} else {
 			if (actChar.inventory == undefined) {
 				actChar.inventory = [];
 			}
 			embed.fields.push({name: "Inventory", value: "*Empty*"});
 		}
-		if (actChar.holding == -1) {
+		if ((actChar.holding || {id: -1}).id == -1) {
+			if (actChar.holding === null || actChar.holding == undefined || typeof actChar.holding == "number") {
+				actChar.holding = -1;
+			}
 			embed.fields.push({name: "Holding", value: "*Nothing*"});
 		} else {
 			embed.fields.push({name: "Holding", value: module.exports.displayItem(msg, combat.calc_item_stats(msg, actChar.holding.id, actChar.holding.level))});
 		}
-		if (actChar.equipped == -1) {
+		if ((actChar.equipped || {id: -1}).id == -1) {
+			if (actChar.equipped === null || actChar.equipped == undefined || typeof actChar.equipped == "number") {
+				actChar.equipped = -1;
+			}
 			embed.fields.push({name: "Equipped", value: "*Nothing*"});
 		} else {
-			embed.fields.push({name: "Equipped", value: module.exports.displayItem(msg,combat.calc_item_stats(msg, actChar.equipped.id, actChar.equipped.level))});
+			embed.fields.push({name: "Equipped", value: module.exports.displayItem(msg, combat.calc_item_stats(msg, actChar.equipped.id, actChar.equipped.level))});
 		}
 		utils.replyMessage(msg, {embed: embed});
 	}
@@ -476,12 +491,22 @@ exports.loadRP = function() {
 							problems++;
 						}
 						if (chan.chars[x].holding === undefined || typeof(chan.chars[x].holding) === "number") {
-							chan.chars[x].holding = {id: chan.chars[x].holding ||-1, quantity: 1, level: 1, xp: 0};
+							chan.chars[x].holding = {id: chan.chars[x].holding || -1, quantity: 1, level: 1, xp: 0};
+							console.log(items[i] + ": char(" + x + ").holding");
+							problems++;
+						}
+						else if (chan.chars[x].holding.level === undefined || chan.chars[x].holding.xp === undefined) {
+							chan.chars[x].holding = Object.assign({level: 1, xp:0}, chan.chars[x].holding);
 							console.log(items[i] + ": char(" + x + ").holding");
 							problems++;
 						}
 						if (chan.chars[x].equipped === undefined || typeof(chan.chars[x].equipped) === "number") {
 							chan.chars[x].equipped = {id: chan.chars[x].equipped || -1, quantity: 1, level: 1, xp: 0};
+							console.log(items[i] + ": char(" + x + ").equipped");
+							problems++;
+						}
+						else if (chan.chars[x].equipped.level === undefined || chan.chars[x].equipped.xp === undefined) {
+							chan.chars[x].equipped = Object.assign({level: 1, xp:0}, chan.chars[x].equipped);
 							console.log(items[i] + ": char(" + x + ").equipped");
 							problems++;
 						}
@@ -571,5 +596,25 @@ exports.saveRP = function saveRP(id) {
 		crypted += cipher.final(config.cipherIOMode);
 		//console.log(string);
 		fs.writeFileSync("./"+config.rpdir+"/"+id, crypted);
+	}
+}
+
+exports.loadLang = function loadLang() {
+	lang = {};
+	var items = fs.readdirSync("./lang/");
+	items.forEach(i => {
+		if (i.endsWith(".json")) {
+			var raw = fs.readFileSync(path.join("./lang/", i));
+			var parsed = CircularJSON.parse(raw);
+			lang[parsed.id] = parsed;
+		}
+	});
+}
+exports.langName = function langName(name) {
+	if (Object.keys(lang).indexOf(name) > -1) {
+		return name;
+	}
+	else {
+		return default_lang;
 	}
 }

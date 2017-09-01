@@ -160,8 +160,12 @@ exports.getObjectID = function(obj_list, name, sub_obj_function = (key, index) =
 exports.getIDMatchingObjects = function(obj_list, id_list) {
 	var result = [];
 	id_list.forEach(o => {
-		if (o !== null)
-			result.push(obj_list[o.id]);
+		if (o !== null && o != undefined) {
+			var r = obj_list[o.id];
+			if (r != undefined) {
+				result.push(r);
+			}
+		}
 	});
 	return result;
 }
@@ -186,8 +190,8 @@ exports.createChar = function(id, name) {
 		classId: -1,
 		specieId: -1,
 		inventory: [],
-		holding: -1,
-		equipped: -1,
+		holding: {id: -1, quantity: 1, level: 1, xp: 0},
+		equipped: {id: -1, quantity: 1, level: 1, xp: 0},
 		xp: 0,
 		lvl: 1,
 		skill_points: 0
@@ -262,7 +266,8 @@ exports.createRoom = function(msg) {
 					if (Array.isArray(actObj.spawn_quantity)) {
 						quantity = actObj.spawn_quantity[Math.floor(module.exports.random(0, actObj.spawn_quantity.length))];
 					}
-					room.items.push({id: targetId, quantity: quantity});
+					// Yeah, that's ugly. I'll have to change it D:
+					room.items.push({id: targetId, quantity: quantity, level: Math.min(Math.floor(module.exports.random(0, (actObj.levels || []).length)), actObj.maxlevel || (actObj.levels || []).length)});
 				}
 			}
 		}

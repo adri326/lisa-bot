@@ -21,7 +21,8 @@
 				^Next word is "save"^: Saves the current channel's RP content to {config.rpdir}/{channel.id}
 */
 
-lang = "en";
+default_lang = "en_US";
+lang = {};
 var token;
 hashedKey = "";
 
@@ -180,9 +181,9 @@ function treatMsg(msg) {
 		if (command.startsWith("help")) {
 
 			var query = command.slice(4).trim();
-			var data = config.lang[lang].help[query.replace(" ", "_")];
+			var data = lang[io.langName(msg.rpg.lang)].help[query.replace(" ", "_")];
 			if (data == undefined) {
-				data = config.lang[lang].help["_"];
+				data = lang[io.langName(msg.rpg.lang)].help["_"];
 			}
 			utils.replyMessage(msg, {embed: Object.assign({}, data, {color: config.colors.help})});
 		}
@@ -206,6 +207,11 @@ function treatMsg(msg) {
 							config = CircularJSON.parse(data.toString());
 							utils.replyMessage(msg, "Reloaded config! Warning, changes may not apply!");
 						}
+					}
+					else if (commandParts[2] == "lang") {
+						console.log("Reloading lang files..");
+						io.loadLang();
+						utils.replyMessage(msg, "Lang files reloaded!");
 					}
 				}
 				else if (commandParts[1] == "eval") {
@@ -290,7 +296,10 @@ var initLoading = function () {
 		console.error("Error while loading the key, be sure to have something creative in the file key.txt and that it is the same with witch the saves have been crypted, with utf-8 encoding!")
 	}
 	io.loadRP();
-	console.log("Loaded the saves, loading presets");
+	console.log("Loaded the saves, loading language files");
+
+	io.loadLang();
+	console.log("Loaded the language files, loading the presets...");
 
 	presets_mod.loadPresets();
 	console.log("Loaded the presets, loading the token");
@@ -343,7 +352,8 @@ exports.trigger_msg = function(msg_base, content) {
 		author_username: msg_base.author_username,
 		author_discriminator: msg_base.author_discriminator,
 		channel: msg_base.channel,
-		guild: msg_base.guild
+		guild: msg_base.guild,
+		rpg: rp[msg_base.guild]
 	};
 	treatMsg(msg_t);
 }

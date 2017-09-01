@@ -165,7 +165,7 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 			return text;
 		}
 		else if (hit) {
-			text += "\r\n" + "You hit " + mob_raw.name + " with " + Math.round(PtMdmg*10)/10 + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.";
+			text += "\r\n" + "You hit " + mob_raw.name + " with " + (Math.round(PtMdmg*10)/10) + " of damage. " + Math.round(mob_impl.HP*10)/10  + " HP left.";
 		}
 		else if (!hit) {
 			text += io.say(msg, "mob_dodged", {name: mob_raw.name, player: player_raw.name})
