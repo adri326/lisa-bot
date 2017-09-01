@@ -41,7 +41,7 @@ const utils = require("./utils");
 const io = require("./io");
 const presets_mod = require("./rpg/presets");
 const rpg = require("./rpg/main");
-const colors = require("./colors/colors.js")();
+const colors = require("./colors/colors.js");
 //const colors = colors_mod();
 
 var onStartupTime = new Date().getTime();
@@ -172,11 +172,9 @@ function treatMsg(msg) {
 
 	if (msg.content.startsWith("l!")) {
 		utils.logMessage(msg);
-
 		//Trims the message and separate the command
 		const command = msg.content.slice(2);
 		const commandParts = utils.splitCommand(msg.content);
-
 
 		if (command.startsWith("help")) {
 
@@ -186,10 +184,6 @@ function treatMsg(msg) {
 				data = lang[io.langName(msg.rpg.lang)].help["_"];
 			}
 			utils.replyMessage(msg, {embed: Object.assign({}, data, {color: config.colors.help})});
-		}
-
-		if (command.startsWith("test")) {
-			// test
 		}
 
 		if (command.startsWith("admin")) {
@@ -223,56 +217,8 @@ function treatMsg(msg) {
 		if (command.toLowerCase().startsWith("rpg")) {
 			rpg(msg, commandParts, command);
 		}
-		else if (command.toLowerCase().startsWith("col")) {
-			if (commandParts[1] == "list") {
-				var setID = utils.getObjectID(colors, commandParts[2]);
-				if (commandParts[2] == undefined || colorID == -1) {
-					var mpages = Math.ceil(colors.length/config.itemsPerPage),
-					page = Math.max(Math.min(+(commandParts[2] || 1), mpages), 1);
-					var embed = {
-						color: config.colors.colors,
-						title: ("List of my handful colors (page " + page + "/" + mpages + ")"),
-						description: "Those are all colors that I took from my environment, feel free to use them. You don't need to credit me, but I'd be very happy if you do!",
-						fields: []
-					};
-					for (i = (page-1)*config.itemsPerPage; i < Math.min((page)*config.itemsPerPage, colors.length); i++) {
-						embed.fields.push({name: colors[i].name || "*Unnamed*", value: colors[i].desc || "*No description given*"});
-					}
-					utils.replyMessage(msg, {embed: embed});
-				}
-				else if (setID > -1) {
-					var colorID = utils.getObjectID(colors[setID].sets, commandParts[3]);
-					if (colorID == -1) {
-						var mpages = Math.ceil(colors[setID].sets.length/config.itemsPerPage),
-						page = Math.max(Math.min(+(commandParts[3] || 1), mpages), 1);
-						var embed = {
-							color: config.colors.colors,
-							title: ("List of my handful colors in " + colors[setID].name + " (page " + page + "/" + mpages + ")"),
-							description: colors[setID].desc,
-							fields: []
-						};
-						for (i = (page-1)*config.itemsPerPage; i < Math.min((page)*config.itemsPerPage, colors[setID].sets.length); i++) {
-							embed.fields.push({name: colors[setID].sets[i].name || "*Unnamed*", value: colors[setID].sets[i].desc || "*No description given*"});
-						}
-						utils.replyMessage(msg, {embed: embed});
-					}
-					else if (colorID > -1) {
-						var mpages = Math.ceil(colors[setID].sets[colorID].colors.length/config.itemsPerPage),
-						page = Math.max(Math.min(+(commandParts[4] || 1), mpages), 1);
-						var embed = {
-							color: config.colors.colors,
-							title: ("List of my handful colors in " + colors[setID].name + "/" + colors[setID].sets[colorID].name + " (page " + page + "/" + mpages + ")"),
-							description: colors[setID].sets[colorID].desc,
-							fields: []
-						};
-						for (i = (page-1)*config.itemsPerPage; i < Math.min((page)*config.itemsPerPage, colors[setID].sets[colorID].colors.length); i++) {
-							var actColor = colors[setID].sets[colorID].colors[i];
-							embed.fields.push({name: colors.parse(actColor).html, value: colors.display(actColor)});
-						}
-						utils.replyMessage(msg, {embed: embed});
-					}
-				}
-			}
+		else if (command.toLowerCase().startsWith("color")) {
+			colors(msg, commandParts, command);
 		}
 	}
 }
@@ -302,7 +248,10 @@ var initLoading = function () {
 	console.log("Loaded the language files, loading the presets...");
 
 	presets_mod.loadPresets();
-	console.log("Loaded the presets, loading the token");
+	console.log("Loaded the presets, loading the colors...");
+
+	colors("init");
+	console.log("Loaded the colors, loading the token...");
 
 	onLoadedTime = new Date().getTime();
 

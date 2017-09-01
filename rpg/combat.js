@@ -196,6 +196,16 @@ exports.combat = function(msg, playerID, mobID, mob_atk = false, player_atk = tr
 }
 
 exports.mob_action = function(msg, mobID) {
-	if (msg.rpg.room.entities[mobID] != undefined) return module.exports.combat(msg, msg.author, mobID, true, false);
+	var selected_player = msg.author;
+	if (msg.rpg.mob_attacks_afk) {
+		let players = Object.keys(msg.rpg.chars);
+		selected_player = players[Math.floor(utils.random(0, players.length))];
+	}
+	else if (msg.rpg.mob_attacks_passive) {
+		let act_time = new Date().getTime();
+		let players = Object.keys(msg.rpg.chars).filter(char => (msg.rpg.chars[char].last_message_time || 0) > act_time - config.minutes_until_afk * 60000);
+		selected_player = players[Math.floor(utils.random(0, players.length))];
+	}
+	if (msg.rpg.room.entities[mobID] != undefined) return module.exports.combat(msg, selected_player, mobID, true, false);
 	return "";
 }

@@ -1,5 +1,6 @@
 const path = require("path");
 const CircularJSON = require("circular-json");
+const wildstring = require("wildstring");
 
 const utils = require("../utils");
 const io = require("../io");
@@ -77,7 +78,6 @@ module.exports = function main(msg, commandParts, command) {
         utils.replyMessage(msg, io.displayItemFancy(msg, combat.calc_item_stats(msg, objectID, level), msg.rpg.chars[msg.author]));
       }
       else if (commandParts[2] == "give" || commandParts[2] == "cgive" && canCheat(msg)) {
-        msg.rpg.turn_amount += combat.action_time(msg, "give_cheat");
         if (commandParts[3] == "self" && canCheat(msg)) {
           var objectInfo = utils.splitCommand(command.slice(17));
           var objectId = utils.getObjectID(msg.rpg.objects, objectInfo[0]);
@@ -629,11 +629,40 @@ module.exports = function main(msg, commandParts, command) {
         }
       }
       else if (commandParts[2] == "HP" || commandParts[2] == "MP") {
-        Object.keys(msg.rpg.chars).filter(
-          p => msg.rpg.chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(msg.rpg.chars[p].name))
-        ).forEach(
-          p => msg.rpg.chars[p][commandParts[2]] += +commandParts[4]
-        );
+        if (commandParts[3] == "add") {
+          Object.keys(msg.rpg.chars).filter(
+            p => msg.rpg.chars[p].name == commandParts[4] || (wildstring.match(commandParts[4], msg.rpg.chars[p].name))
+          ).forEach(
+            p => msg.rpg.chars[p][commandParts[2]] += ~~commandParts[5]
+          );
+          utils.replyMessage(msg, io.say(msg, "add_" + commandParts[2] + "_success", {player: commandParts[4], amount: ~~commandParts[5]}));
+        }
+        else if (commandParts[3] == "set") {
+          Object.keys(msg.rpg.chars).filter(
+            p => msg.rpg.chars[p].name == commandParts[4] || (wildstring.match(commandParts[4], msg.rpg.chars[p].name))
+          ).forEach(
+            p => msg.rpg.chars[p][commandParts[2]] = ~~commandParts[5]
+          );
+          utils.replyMessage(msg, io.say(msg, "set_" + commandParts[2] + "_success", {player: commandParts[4], amount: ~~commandParts[5]}));
+        }
+      }
+      else if (commandParts[2] == "skill") {
+        if (commandParts[3] == "add") {
+          Object.keys(msg.rpg.chars).filter(
+            p => msg.rpg.chars[p].name == commandParts[4] || (wildstring.match(commandParts[4], msg.rpg.chars[p].name))
+          ).forEach(
+            p => msg.rpg.chars[p].skill_points += ~~commandParts[5]
+          );
+          utils.replyMessage(msg, io.say(msg, "add_skill_success", {player: commandParts[4], amount: ~~commandParts[5]}));
+        }
+        else if (commandParts[3] == "set") {
+          Object.keys(msg.rpg.chars).filter(
+            p => msg.rpg.chars[p].name == commandParts[4] || (wildstring.match(commandParts[4], msg.rpg.chars[p].name))
+          ).forEach(
+            p => msg.rpg.chars[p].skill_points = ~~commandParts[5]
+          );
+          utils.replyMessage(msg, io.say(msg, "set_skill_success", {player: commandParts[4], amount: ~~commandParts[5]}));
+        }
       }
       else if (commandParts[2] == "levelup") {
         var embed = {
@@ -642,7 +671,7 @@ module.exports = function main(msg, commandParts, command) {
         };
 
         Object.keys(msg.rpg.chars).filter(
-          p => msg.rpg.chars[p].name == commandParts[3] || (new RegExp(commandParts[3]).test(msg.rpg.chars[p].name))
+          p => msg.rpg.chars[p].name == commandParts[3] || (wildstring.match(commandParts[3], msg.rpg.chars[p].name))
         ).forEach(
           p => {
             var text = "";
@@ -658,7 +687,12 @@ module.exports = function main(msg, commandParts, command) {
             embed.fields.push({name: actChar.name, value: text});
           }
         );
-        utils.replyMessage(msg, {embed: embed});
+        if (embed.fields.length <= 25) {
+          utils.replyMessage(msg, {embed: embed});
+        }
+        else {
+          utils.replyMessage(msg, io.say(msg, "level_up_success", {name: commandPart[3]}));
+        }
       }
       else if (commandParts[2] == "room") {
         if (commandParts[3] == "next") {
@@ -680,7 +714,6 @@ module.exports = function main(msg, commandParts, command) {
     }
     else if (commandParts[1] == "attack" || commandParts[1] == "atk") {
       if (utils.require(msg, reqs.has_char | reqs.has_class | reqs.has_specie | reqs.are_classes | reqs.are_species | reqs.are_objects | reqs.are_mobs | reqs.is_room | reqs.are_mobs_in_room | reqs.is_alive)) {
-        // TODO: separate the player => mob and the mob => player, to make ALL the mob attack
         var actRoom = msg.rpg.room;
         var targetId = Math.floor(utils.random(0, actRoom.entities.length));
         if (commandParts[2] != undefined) {
