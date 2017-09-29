@@ -162,12 +162,18 @@ function treatMsg(msg) {
 			}
 		}
 	}
-
-	if (msg.content == "<@318041916094677002>" && msg.author == "238841636581277698") {
-		utils.replyMessage(msg, "Yes, *my god* ?");
-	}
 	else if (msg.content == "<@318041916094677002>") {
-		utils.replyMessage(msg, "Print `l!help` for more help!");
+		switch (msg.author) {
+			case "238841636581277698":
+				utils.replyMessage(msg, "Yes, *my god* ?");
+				break;
+			case "205413726625595394":
+				utils.replyMessage(msg, "*prosternates*");
+				break;
+			default:
+				utils.replyMessage(msg, "Print `l!help` for more help!");
+				break;
+		}
 	}
 
 	if (msg.content.startsWith("l!")) {
@@ -210,6 +216,31 @@ function treatMsg(msg) {
 				}
 				else if (commandParts[1] == "eval") {
 					eval(command.split("```")[1]);
+				}
+				else if (commandParts[1] == "history") {
+					let guild = bot.guilds.get(msg.guild);
+					if (guild != undefined) {
+						let channel = guild.channels.get(msg.channel);
+						if (channel != undefined) {
+							channel.fetchMessage(commandParts[2])
+								.then(messages => {
+									utils.replyMessage(msg, (() => {
+										let s = "";
+										messages.edits.forEach(m => {
+											s = s + "```" + m.content + "```"
+										});
+										return s;
+									})());
+								})
+								.catch(console.error);
+						}
+						else {
+							utils.replyMessage(msg, "Error :3");
+						}
+					}
+					else {
+						utils.replyMessage(msg, "Error :3");
+					}
 				}
 			}
 		}
